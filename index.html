@@ -1,2636 +1,1398 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Disiplin Defteri</title>
-  <style>
-    :root {
-      --bg: #090909;
-      --bg-soft: #111111;
-      --panel: rgba(17, 17, 17, 0.84);
-      --panel-strong: rgba(23, 23, 23, 0.94);
-      --panel-muted: rgba(29, 29, 29, 0.7);
-      --line: rgba(255, 255, 255, 0.08);
-      --line-strong: rgba(255, 255, 255, 0.14);
-      --text: #f1eee7;
-      --text-soft: #c4beb0;
-      --text-dim: #8d877a;
-      --accent: #c8b27f;
-      --accent-strong: #e4d6b2;
-      --accent-deep: #8f7952;
-      --good: #88b487;
-      --warn: #c8a86a;
-      --bad: #c16b63;
-      --shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
-      --radius-xl: 26px;
-      --radius-lg: 18px;
-      --radius-md: 14px;
-      --radius-sm: 10px;
-      --transition: 180ms ease;
-      --bg-opacity: 0.18;
-      --level-glow: 0;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top, rgba(200, 178, 127, 0.08), transparent 30%),
-        linear-gradient(180deg, #0d0d0d 0%, #070707 45%, #040404 100%);
-      overflow-x: hidden;
-    }
-
-    body::before,
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      transition: opacity var(--transition);
-    }
-
-    body::before {
-      opacity: var(--bg-opacity);
-      background-image:
-        radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.08), transparent 24%),
-        radial-gradient(circle at 78% 16%, rgba(255, 255, 255, 0.05), transparent 20%),
-        radial-gradient(circle at 70% 74%, rgba(200, 178, 127, 0.08), transparent 28%),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 1200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='1200' height='1200' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E");
-      background-size: cover;
-      background-position: center;
-      mix-blend-mode: screen;
-    }
-
-    body::after {
-      opacity: calc(var(--bg-opacity) * 0.72);
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 900'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.18)' stroke-width='1.2'%3E%3Cpath d='M214 755c41-125 83-250 166-336 29-30 61-58 99-78 46-25 98-37 149-48 44-9 89-18 128-42 61-38 106-104 118-175'/%3E%3Cpath d='M89 592c72-30 153-36 229-28 58 6 117 20 175 14 85-9 161-60 212-128 42-56 71-122 122-169'/%3E%3Cpath d='M303 109c52 35 78 100 80 163 2 46-8 93 3 138 18 76 79 143 154 165 54 15 112 8 165 21'/%3E%3C/g%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: min(1200px, 140vw);
-    }
-
-    body.bg-hidden::before,
-    body.bg-hidden::after {
-      opacity: 0;
-    }
-
-    .app-shell {
-      position: relative;
-      z-index: 1;
-      width: min(1160px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 28px 0 96px;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 20px;
-      margin-bottom: 24px;
-    }
-
-    .eyebrow {
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.24em;
-      font-size: 11px;
-      margin-bottom: 10px;
-    }
-
-    h1, h2, h3, h4 {
-      margin: 0;
-      font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
-      letter-spacing: 0.01em;
-    }
-
-    .topbar h1 {
-      font-size: clamp(2.1rem, 3vw, 3rem);
-      line-height: 1;
-      margin-bottom: 12px;
-    }
-
-    .topbar p {
-      margin: 0;
-      max-width: 640px;
-      color: var(--text-soft);
-      font-size: 15px;
-      line-height: 1.6;
-    }
-
-    .date-card {
-      min-width: 210px;
-      padding: 16px 18px;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-      backdrop-filter: blur(14px);
-      box-shadow: var(--shadow);
-    }
-
-    .date-label {
-      font-size: 12px;
-      color: var(--text-dim);
-      margin-bottom: 4px;
-    }
-
-    .date-value {
-      font-size: 18px;
-      color: var(--text);
-      font-weight: 700;
-      margin-bottom: 10px;
-    }
-
-    .date-sub {
-      font-size: 13px;
-      color: var(--text-soft);
-      line-height: 1.5;
-    }
-
-    .hero-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.9fr);
-      gap: 18px;
-      margin-bottom: 18px;
-    }
-
-    .panel {
-      border: 1px solid var(--line);
-      background: var(--panel);
-      border-radius: var(--radius-xl);
-      backdrop-filter: blur(18px);
-      box-shadow: var(--shadow);
-    }
-
-    .hero-card {
-      padding: 26px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero-card::after {
-      content: "";
-      position: absolute;
-      inset: auto auto -40% 58%;
-      width: 280px;
-      height: 280px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(200, 178, 127, 0.12), transparent 62%);
-      pointer-events: none;
-    }
-
-    .hero-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-      margin-bottom: 22px;
-    }
-
-    .level-block {
-      display: flex;
-      align-items: flex-end;
-      gap: 16px;
-    }
-
-    .level-number {
-      font-size: clamp(4rem, 8vw, 5.6rem);
-      line-height: 0.9;
-      color: var(--accent-strong);
-      text-shadow: 0 0 calc(24px * var(--level-glow)) rgba(228, 214, 178, 0.35);
-      transition: text-shadow 420ms ease;
-    }
-
-    .rank-meta {
-      padding-bottom: 8px;
-    }
-
-    .rank-meta .label {
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      font-size: 11px;
-      margin-bottom: 6px;
-    }
-
-    .rank-meta .value {
-      font-size: 26px;
-      margin-bottom: 4px;
-    }
-
-    .rank-meta .sub {
-      color: var(--text-soft);
-      font-size: 14px;
-    }
-
-    .identity-card {
-      max-width: 320px;
-      padding: 16px 18px;
-      border-radius: var(--radius-lg);
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--line);
-      align-self: flex-start;
-    }
-
-    .identity-card .label {
-      font-size: 11px;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      margin-bottom: 8px;
-    }
-
-    .identity-card strong {
-      display: block;
-      font-size: 18px;
-      margin-bottom: 8px;
-      color: var(--accent-strong);
-    }
-
-    .identity-card p {
-      margin: 0;
-      color: var(--text-soft);
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .xp-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-      margin-bottom: 10px;
-      font-size: 14px;
-      color: var(--text-soft);
-    }
-
-    .xp-bar {
-      height: 14px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.05);
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      margin-bottom: 18px;
-    }
-
-    .xp-fill {
-      height: 100%;
-      width: 0;
-      border-radius: inherit;
-      background:
-        linear-gradient(90deg, rgba(143, 121, 82, 0.9), rgba(228, 214, 178, 0.95));
-      box-shadow: 0 0 22px rgba(200, 178, 127, 0.26);
-      transition: width 700ms cubic-bezier(0.22, 1, 0.36, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .xp-fill::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      transform: translateX(-100%);
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
-      animation: sweep 2.6s ease infinite;
-    }
-
-    @keyframes sweep {
-      0% { transform: translateX(-100%); }
-      45%, 100% { transform: translateX(180%); }
-    }
-
-    .meta-row {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .meta-card,
-    .stat-card,
-    .action-card,
-    .history-item,
-    .settings-card,
-    .micro-card {
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.025);
-    }
-
-    .meta-card {
-      padding: 16px;
-    }
-
-    .meta-card .label,
-    .stat-card .label,
-    .settings-item label,
-    .action-top .subtitle,
-    .tiny-label,
-    .history-item .tiny {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--text-dim);
-    }
-
-    .meta-card .value {
-      display: block;
-      margin-top: 10px;
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .meta-card .hint {
-      display: block;
-      margin-top: 8px;
-      color: var(--text-soft);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .summary-card {
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .today-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--line);
-      font-size: 12px;
-      color: var(--text-soft);
-      width: fit-content;
-    }
-
-    .dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: var(--text-dim);
-      box-shadow: 0 0 0 6px rgba(255,255,255,0.03);
-    }
-
-    .dot.good { background: var(--good); }
-    .dot.warn { background: var(--warn); }
-    .dot.bad { background: var(--bad); }
-
-    .summary-text {
-      font-size: 15px;
-      line-height: 1.7;
-      color: var(--text-soft);
-      margin: 0;
-    }
-
-    .summary-stack {
-      display: grid;
-      gap: 12px;
-    }
-
-    .summary-line {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 12px 14px;
-      border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.03);
-      font-size: 14px;
-    }
-
-    .summary-line strong {
-      font-weight: 700;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-      gap: 18px;
-      margin-bottom: 18px;
-    }
-
-    .stats-panel,
-    .micro-panel,
-    .actions-panel,
-    .history-panel,
-    .settings-panel {
-      padding: 24px;
-    }
-
-    .section-head {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 18px;
-    }
-
-    .section-head p {
-      margin: 8px 0 0;
-      color: var(--text-soft);
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .stat-grid {
-      display: grid;
-      gap: 12px;
-    }
-
-    .stat-card {
-      padding: 16px;
-    }
-
-    .stat-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .stat-card .value {
-      font-size: 30px;
-      font-weight: 700;
-    }
-
-    .stat-desc {
-      color: var(--text-soft);
-      font-size: 13px;
-      margin-bottom: 14px;
-      line-height: 1.6;
-    }
-
-    .mini-track {
-      height: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .mini-fill {
-      height: 100%;
-      width: 0;
-      border-radius: inherit;
-      transition: width 700ms ease;
-    }
-
-    .mini-fill.int { background: linear-gradient(90deg, #707fbe, #a2b0e8); }
-    .mini-fill.str { background: linear-gradient(90deg, #8c6459, #d29681); }
-    .mini-fill.focus { background: linear-gradient(90deg, #67836c, #97ba9f); }
-
-    .micro-panel {
-      margin-top: 18px;
-    }
-
-    .micro-grid {
-      display: grid;
-      gap: 12px;
-    }
-
-    .micro-card {
-      padding: 16px;
-      display: flex;
-      justify-content: space-between;
-      gap: 14px;
-      align-items: center;
-    }
-
-    .micro-card p {
-      margin: 6px 0 0;
-      color: var(--text-soft);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .actions-grid {
-      display: grid;
-      gap: 14px;
-    }
-
-    .action-card {
-      padding: 18px;
-      transition: transform var(--transition), border-color var(--transition), background var(--transition);
-    }
-
-    .action-card:hover {
-      transform: translateY(-2px);
-      border-color: var(--line-strong);
-      background: rgba(255, 255, 255, 0.035);
-    }
-
-    .action-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 14px;
-      align-items: flex-start;
-    }
-
-    .action-top h3 {
-      font-size: 22px;
-      margin-bottom: 6px;
-    }
-
-    .status-tag {
-      padding: 7px 11px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.03);
-      font-size: 12px;
-      white-space: nowrap;
-      color: var(--text-soft);
-    }
-
-    .status-tag.perfect {
-      color: var(--good);
-      border-color: rgba(136, 180, 135, 0.36);
-      background: rgba(136, 180, 135, 0.08);
-    }
-
-    .status-tag.partial {
-      color: var(--warn);
-      border-color: rgba(200, 168, 106, 0.36);
-      background: rgba(200, 168, 106, 0.08);
-    }
-
-    .status-tag.fail {
-      color: var(--bad);
-      border-color: rgba(193, 107, 99, 0.34);
-      background: rgba(193, 107, 99, 0.08);
-    }
-
-    .zone-line {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .zone-chip {
-      padding: 7px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      border: 1px solid var(--line);
-      color: var(--text-soft);
-      background: rgba(255, 255, 255, 0.025);
-    }
-
-    .zone-chip.perfect { color: var(--good); }
-    .zone-chip.partial { color: var(--warn); }
-    .zone-chip.fail { color: var(--bad); }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 10px;
-      align-items: end;
-      margin-bottom: 12px;
-    }
-
-    .compact-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .settings-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    input,
-    select,
-    button,
-    textarea {
-      font: inherit;
-    }
-
-    input,
-    select {
-      width: 100%;
-      padding: 13px 14px;
-      color: var(--text);
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(255, 255, 255, 0.09);
-      background: rgba(255, 255, 255, 0.03);
-      outline: none;
-      transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
-    }
-
-    input:focus,
-    select:focus {
-      border-color: rgba(200, 178, 127, 0.45);
-      background: rgba(255, 255, 255, 0.05);
-      box-shadow: 0 0 0 4px rgba(200, 178, 127, 0.08);
-    }
-
-    input:disabled,
-    select:disabled,
-    button:disabled {
-      opacity: 0.58;
-      cursor: not-allowed;
-    }
-
-    button {
-      border: 0;
-      cursor: pointer;
-      transition: transform var(--transition), opacity var(--transition), background var(--transition), border-color var(--transition);
-    }
-
-    .btn {
-      padding: 13px 16px;
-      border-radius: var(--radius-md);
-      font-weight: 700;
-      letter-spacing: 0.01em;
-    }
-
-    .btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-    }
-
-    .btn-primary {
-      background: linear-gradient(180deg, rgba(228, 214, 178, 0.96), rgba(186, 160, 110, 0.92));
-      color: #18140d;
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.055);
-      color: var(--text);
-      border: 1px solid var(--line);
-    }
-
-    .btn-danger {
-      background: rgba(193, 107, 99, 0.16);
-      color: #f4d8d5;
-      border: 1px solid rgba(193, 107, 99, 0.34);
-    }
-
-    .helper {
-      font-size: 13px;
-      line-height: 1.6;
-      color: var(--text-soft);
-      margin: 0;
-    }
-
-    .reward-line {
-      margin-top: 10px;
-      padding: 12px 14px;
-      border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.03);
-      color: var(--text-soft);
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .reward-line strong {
-      color: var(--accent-strong);
-    }
-
-    .closeout-card {
-      margin-top: 18px;
-      padding: 18px;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.025);
-      display: grid;
-      gap: 14px;
-    }
-
-    .closeout-result {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
-    }
-
-    .closeout-result .value {
-      font-size: 28px;
-      font-weight: 700;
-    }
-
-    .history-list {
-      display: grid;
-      gap: 12px;
-      max-height: 640px;
-      overflow: auto;
-      padding-right: 4px;
-    }
-
-    .history-item {
-      padding: 16px;
-    }
-
-    .history-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 14px;
-      align-items: center;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-
-    .history-date {
-      font-size: 18px;
-    }
-
-    .history-summary {
-      color: var(--text-soft);
-      font-size: 14px;
-      line-height: 1.65;
-      margin-bottom: 12px;
-    }
-
-    .history-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .history-tags span {
-      font-size: 12px;
-      padding: 7px 9px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      color: var(--text-soft);
-      background: rgba(255, 255, 255, 0.025);
-    }
-
-    .settings-stack {
-      display: grid;
-      gap: 14px;
-    }
-
-    .settings-card {
-      padding: 18px;
-    }
-
-    .settings-card h3 {
-      font-size: 20px;
-      margin-bottom: 8px;
-    }
-
-    .settings-card p {
-      margin: 0 0 14px;
-      color: var(--text-soft);
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .settings-item {
-      display: grid;
-      gap: 8px;
-    }
-
-    .settings-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 6px;
-    }
-
-    .range-wrap {
-      display: grid;
-      gap: 10px;
-    }
-
-    input[type="range"] {
-      padding: 0;
-      background: transparent;
-      border: 0;
-      box-shadow: none;
-    }
-
-    .empty {
-      border-radius: var(--radius-lg);
-      border: 1px dashed var(--line-strong);
-      padding: 18px;
-      color: var(--text-soft);
-      line-height: 1.7;
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .toast-wrap {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      z-index: 30;
-      display: grid;
-      gap: 10px;
-      width: min(360px, calc(100% - 24px));
-    }
-
-    .toast {
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: rgba(12, 12, 12, 0.94);
-      padding: 14px 16px;
-      box-shadow: var(--shadow);
-      animation: toast-in 220ms ease;
-      color: var(--text);
-      line-height: 1.55;
-    }
-
-    .toast.good { border-color: rgba(136, 180, 135, 0.35); }
-    .toast.warn { border-color: rgba(200, 168, 106, 0.35); }
-    .toast.bad { border-color: rgba(193, 107, 99, 0.35); }
-
-    @keyframes toast-in {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.72);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      z-index: 40;
-    }
-
-    .modal-backdrop.open {
-      display: flex;
-    }
-
-    .modal {
-      width: min(460px, 100%);
-      border-radius: 24px;
-      border: 1px solid var(--line);
-      background: #111111;
-      box-shadow: var(--shadow);
-      padding: 24px;
-    }
-
-    .modal p {
-      margin: 10px 0 18px;
-      color: var(--text-soft);
-      line-height: 1.7;
-      font-size: 14px;
-    }
-
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .footer-note {
-      margin-top: 18px;
-      color: var(--text-dim);
-      font-size: 12px;
-      line-height: 1.7;
-    }
-
-    .tabbar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 18px;
-      flex-wrap: wrap;
-    }
-
-    .tab-btn {
-      padding: 12px 16px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.03);
-      color: var(--text-soft);
-      font-weight: 700;
-    }
-
-    .tab-btn.active {
-      background: linear-gradient(180deg, rgba(228, 214, 178, 0.96), rgba(186, 160, 110, 0.92));
-      color: #18140d;
-      border-color: transparent;
-    }
-
-    .dashboard-grid.single-mode {
-      grid-template-columns: 1fr;
-    }
-
-    @media (max-width: 980px) {
-      .hero-grid,
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 720px) {
-      .app-shell {
-        width: min(100% - 18px, 100%);
-        padding-top: 18px;
-      }
-
-      .topbar,
-      .hero-top,
-      .closeout-result,
-      .summary-line,
-      .history-head {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .meta-row,
-      .compact-grid,
-      .settings-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .summary-card,
-      .hero-card,
-      .stats-panel,
-      .micro-panel,
-      .actions-panel,
-      .history-panel,
-      .settings-panel {
-        padding: 18px;
-      }
-
-      .level-block {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .date-card {
-        width: 100%;
-      }
-
-      .tabbar {
-        gap: 8px;
-      }
-
-      .tab-btn {
-        flex: 1 1 calc(33.333% - 6px);
-        text-align: center;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DİSİPLİN — Kendi Savaşını Kazan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   VARIABLES & RESET
+   ============================================ */
+:root {
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --surface2: #181818;
+  --border: #222222;
+  --text: #e8e8e8;
+  --text-muted: #555555;
+  --text-dim: #888888;
+  --accent: #c8f542;       /* sharp lime — discipline green */
+  --accent-dim: #8aaa20;
+  --danger: #ff4040;
+  --danger-dim: #7a1a1a;
+  --warn: #f0a500;
+  --blue: #4a9eff;
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --radius: 6px;
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-display);
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-left h1 {
+  font-size: clamp(22px, 5vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+.header-left p {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-top: 4px;
+}
+
+.date-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  text-align: right;
+}
+
+/* ============================================
+   PLAYER CARD
+   ============================================ */
+.player-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.player-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--accent);
+}
+
+.level-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.level-num {
+  font-size: clamp(48px, 10vw, 72px);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  letter-spacing: -0.04em;
+}
+
+.level-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.xp-section {
+  margin-bottom: 20px;
+}
+
+.xp-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.xp-label-row span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.xp-label-row strong {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+}
+
+.xp-bar-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.xp-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.xp-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 20px; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.stat-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  text-align: center;
+}
+
+.stat-icon {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1;
+}
+
+.stat-name {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 4px;
+}
+
+/* ============================================
+   STATUS BAR
+   ============================================ */
+.status-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.status-pill {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+}
+
+.status-pill.success {
+  border-color: var(--accent-dim);
+  background: rgba(200, 245, 66, 0.05);
+}
+
+.status-pill.fail {
+  border-color: var(--danger-dim);
+  background: rgba(255, 64, 64, 0.05);
+}
+
+.status-pill.neutral {
+  border-color: var(--border);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.status-pill.success .status-dot { background: var(--accent); }
+.status-pill.fail .status-dot { background: var(--danger); animation: pulse-red 1.5s infinite; }
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.status-text {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+}
+
+.status-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.streak-pill {
+  flex-shrink: 0;
+  width: auto;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+}
+
+.streak-fire { font-size: 20px; }
+.streak-count {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--warn);
+  line-height: 1;
+}
+
+.streak-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ============================================
+   SECTIONS
+   ============================================ */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition);
+}
+
+.section-header:hover { background: var(--surface2); }
+
+.section-icon {
+  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+
+.section-title {
+  flex: 1;
+}
+
+.section-title h3 {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.section-title p {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.section-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.section-badge.done {
+  background: rgba(200, 245, 66, 0.1);
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+
+.section-badge.failed {
+  background: rgba(255, 64, 64, 0.1);
+  border-color: var(--danger-dim);
+  color: var(--danger);
+}
+
+.section-chevron {
+  color: var(--text-muted);
+  transition: transform var(--transition);
+  font-size: 12px;
+}
+
+.section.open .section-chevron { transform: rotate(180deg); }
+
+.section-body {
+  display: none;
+  padding: 0 20px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.section.open .section-body { display: block; padding-top: 16px; }
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.form-group input[type="time"],
+.form-group input[type="number"],
+.form-group input[type="text"] {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color var(--transition);
+  -webkit-appearance: none;
+}
+
+.form-group input:focus {
+  border-color: var(--accent-dim);
+}
+
+.form-group input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
+
+.info-text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  line-height: 1.6;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  width: 100%;
+  letter-spacing: 0.01em;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.btn:hover::before { opacity: 0.04; }
+.btn:active { transform: scale(0.98); }
+
+.btn-primary {
+  background: var(--accent);
+  color: #0a0a0a;
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.btn-primary:hover { background: #d4ff55; border-color: #d4ff55; }
+
+.btn-danger {
+  background: rgba(255, 64, 64, 0.1);
+  color: var(--danger);
+  border-color: var(--danger-dim);
+}
+
+.btn-danger:hover { background: rgba(255, 64, 64, 0.18); }
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-row .btn { flex: 1; }
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================
+   TOAST NOTIFICATION
+   ============================================ */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  z-index: 1000;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s;
+  opacity: 0;
+  white-space: nowrap;
+  max-width: 90vw;
+  text-align: center;
+}
+
+#toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+#toast.positive { border-color: var(--accent-dim); color: var(--accent); }
+#toast.negative { border-color: var(--danger-dim); color: var(--danger); }
+#toast.warn { border-color: #7a5a00; color: var(--warn); }
+
+/* ============================================
+   SETTINGS PANEL
+   ============================================ */
+.settings-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 12px;
+}
+
+.settings-panel h3 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+/* ============================================
+   DAILY LOG
+   ============================================ */
+.log-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.log-entry:last-child { border-bottom: none; }
+
+.log-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.log-icon.plus { background: rgba(200, 245, 66, 0.1); }
+.log-icon.minus { background: rgba(255, 64, 64, 0.1); }
+
+.log-desc { flex: 1; }
+
+.log-xp {
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.log-xp.plus { color: var(--accent); }
+.log-xp.minus { color: var(--danger); }
+
+/* ============================================
+   DIVIDER
+   ============================================ */
+.section-divider {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  margin: 24px 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ============================================
+   END OF DAY
+   ============================================ */
+.eod-btn-wrap {
+  margin-top: 20px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 480px) {
+  .status-bar { flex-wrap: wrap; }
+  .streak-pill { width: 100%; justify-content: center; }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat-box { padding: 10px 8px; }
+  .stat-value { font-size: 20px; }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.player-card, .status-bar, .section, .settings-panel {
+  animation: fadeIn 0.4s ease backwards;
+}
+
+.player-card { animation-delay: 0.05s; }
+.status-bar { animation-delay: 0.1s; }
+.section:nth-child(1) { animation-delay: 0.15s; }
+.section:nth-child(2) { animation-delay: 0.2s; }
+.section:nth-child(3) { animation-delay: 0.25s; }
+.section:nth-child(4) { animation-delay: 0.3s; }
+
+/* Stat flash animation */
+@keyframes statFlash {
+  0%, 100% { color: var(--text); }
+  50% { color: var(--accent); }
+}
+
+.stat-value.flash { animation: statFlash 0.6s ease; }
+</style>
 </head>
 <body>
-  <div class="app-shell">
-    <header class="topbar">
-      <div>
-        <div class="eyebrow">Kişisel Disiplin Sistemi</div>
-        <h1>Disiplin Defteri</h1>
-        <p>Bu ekran bir alışkanlık listesi değil. Burada çalışma, antrenman, odak ve günlük düzen; karakter gelişimi gibi işlenir. Küçük ama tutarlı ilerleme, seviyeyi uzun vadede taşır.</p>
-      </div>
-      <aside class="date-card panel">
-        <div class="date-label">Bugün</div>
-        <div class="date-value" id="todayDateText">-</div>
-        <div class="date-sub" id="dateSubText">Gün açık.</div>
-      </aside>
-    </header>
 
-    <nav class="tabbar" aria-label="Uygulama sekmeleri">
-      <button class="tab-btn active" type="button" data-tab="home">Anasayfa</button>
-      <button class="tab-btn" type="button" data-tab="archive">ArÅŸiv</button>
-      <button class="tab-btn" type="button" data-tab="settings">Ayarlar</button>
-    </nav>
+<div class="app">
 
-    <section class="hero-grid" id="homeHeroSection">
-      <div class="hero-card panel">
-        <div class="hero-top">
-          <div class="level-block">
-            <div class="level-number" id="levelNumber">1</div>
-            <div class="rank-meta">
-              <div class="label">Seviye ve Rütbe</div>
-              <div class="value" id="rankTitle">Acemi</div>
-              <div class="sub" id="rankHint">Bir sonraki seviyeye kontrollü ilerleme.</div>
-            </div>
-          </div>
-          <div class="identity-card">
-            <div class="label">Kimliğin</div>
-            <strong id="identityLine">Bugün kendini ciddiye alan biri gibi ilerliyorsun.</strong>
-            <p id="identitySub">Kayıtlar geldikçe sistem günün tonunu netleştirir.</p>
-          </div>
-        </div>
-
-        <div class="xp-head">
-          <span id="xpSummary">Toplam XP: 0</span>
-          <strong id="xpToNext">Sonraki seviye: 100 XP</strong>
-        </div>
-        <div class="xp-bar">
-          <div class="xp-fill" id="xpFill"></div>
-        </div>
-
-        <div class="meta-row">
-          <div class="meta-card">
-            <span class="label">Gün Serisi</span>
-            <span class="value" id="streakValue">0</span>
-            <span class="hint">Başarılı kapanan günler birikir. Koruma hakkı varsa kötü bir gün seriyi anında silmez.</span>
-          </div>
-          <div class="meta-card">
-            <span class="label">Koruma Hakkı</span>
-            <span class="value" id="shieldValue">1</span>
-            <span class="hint">En fazla 2 hak tutulur. Başarılı günler ilerledikçe geri kazanılır.</span>
-          </div>
-          <div class="meta-card">
-            <span class="label">Zorluk</span>
-            <span class="value" id="difficultyValue">Normal</span>
-            <span class="hint" id="difficultyHint">Dengeli hedefler ve standart ceza/ödül düzeni.</span>
-          </div>
-          <div class="meta-card">
-            <span class="label">Bugünlük Durum</span>
-            <span class="value" id="dayStatusLabel">Açık Gün</span>
-            <span class="hint" id="dayStatusHint">Henüz kapanmadı. Gün sonu kararı dört ana kayıt üzerinden hesaplanır.</span>
-          </div>
-        </div>
-      </div>
-
-      <aside class="summary-card panel">
-        <div class="today-badge" id="todayBadge">
-          <span class="dot warn"></span>
-          <span id="todayBadgeText">Gün açık</span>
-        </div>
-
-        <p class="summary-text" id="todaySummaryText">Henüz kapanış yapılmadı. Dört alanın her biri kendi içinde kusursuz, kabul edilebilir ve başarısız bölgelere ayrılır.</p>
-
-        <div class="summary-stack">
-          <div class="summary-line">
-            <span>Bugünün puanı</span>
-            <strong id="dayScoreValue">0 / 8</strong>
-          </div>
-          <div class="summary-line">
-            <span>Tekrarlı hata baskısı</span>
-            <strong id="pressureValue">0</strong>
-          </div>
-          <div class="summary-line">
-            <span>Bugün kazanılan net XP</span>
-            <strong id="todayNetXpValue">0 XP</strong>
-          </div>
-        </div>
-
-        <div class="footer-note">Kapanış eşiği 5 puan. Kusursuz kayıt 2, kabul edilebilir kayıt 1, başarısız kayıt 0 puan getirir.</div>
-      </aside>
-    </section>
-
-    <section class="dashboard-grid" id="homeMainSection">
-      <div>
-        <section class="stats-panel panel">
-          <div class="section-head">
-            <div>
-              <div class="eyebrow">Karakter</div>
-              <h2>Temel Nitelikler</h2>
-              <p>Zeka çalışma ile, güç antrenman ile, odak ise ekran disiplini ve zaman yönetimi ile yükselir.</p>
-            </div>
-          </div>
-
-          <div class="stat-grid">
-            <article class="stat-card">
-              <div class="stat-head">
-                <div>
-                  <div class="label">Intelligence</div>
-                  <div class="value" id="statIntValue">0</div>
-                </div>
-                <div class="tiny-label" id="statIntDelta">Bugün +0</div>
-              </div>
-              <div class="stat-desc">Derin çalışma, sabır ve analitik dayanıklılık.</div>
-              <div class="mini-track"><div class="mini-fill int" id="statIntFill"></div></div>
-            </article>
-
-            <article class="stat-card">
-              <div class="stat-head">
-                <div>
-                  <div class="label">Strength</div>
-                  <div class="value" id="statStrValue">0</div>
-                </div>
-                <div class="tiny-label" id="statStrDelta">Bugün +0</div>
-              </div>
-              <div class="stat-desc">Fiziksel efor, düzen ve bedene verdiğin ciddiyet.</div>
-              <div class="mini-track"><div class="mini-fill str" id="statStrFill"></div></div>
-            </article>
-
-            <article class="stat-card">
-              <div class="stat-head">
-                <div>
-                  <div class="label">Focus</div>
-                  <div class="value" id="statFocusValue">0</div>
-                </div>
-                <div class="tiny-label" id="statFocusDelta">Bugün +0</div>
-              </div>
-              <div class="stat-desc">Dikkatini geri toplama, ekran sınırı ve erken toparlanma gücü.</div>
-              <div class="mini-track"><div class="mini-fill focus" id="statFocusFill"></div></div>
-            </article>
-          </div>
-        </section>
-
-        <section class="micro-panel panel">
-          <div class="section-head">
-            <div>
-              <div class="eyebrow">Başlangıç Gücü</div>
-              <h2>Mikro Hedefler</h2>
-              <p>Asıl iş bazen başlamak. Bu bölüm küçük bir giriş hareketini ödüllendirir, büyük işin yerini almaz.</p>
-            </div>
-          </div>
-
-          <div class="micro-grid">
-            <div class="micro-card">
-              <div>
-                <div class="tiny-label">Çalışma Başlangıcı</div>
-                <strong>10 dakikalık masaya oturuş</strong>
-                <p>Bir kez verilir. Küçük bir ateşleme XP’si kazandırır ve çalışmayı başlatmayı kolaylaştırır.</p>
-              </div>
-              <button class="btn btn-secondary" id="microStudyBtn" type="button">Başlangıcı İşle</button>
-            </div>
-            <div class="micro-card">
-              <div>
-                <div class="tiny-label">Odak Toplama</div>
-                <strong>15 dakikalık ekran dışı blok</strong>
-                <p>Odak puanına küçük katkı sağlar. Günün kalan ekran kaydı için hafif psikolojik tampon oluşturur.</p>
-              </div>
-              <button class="btn btn-secondary" id="microFocusBtn" type="button">Bloku İşle</button>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <section class="actions-panel panel">
-        <div class="section-head">
-          <div>
-            <div class="eyebrow">Günlük Kayıt</div>
-            <h2>Bugünün Disiplin Alanları</h2>
-            <p>Her alan üç kademeli değerlendirilir. Küçük sapma doğrudan çöküş sayılmaz, ama tekrar ederse baskı artar.</p>
-          </div>
-        </div>
-
-        <div class="actions-grid">
-          <article class="action-card">
-            <div class="action-top">
-              <div>
-                <h3>Uyanış</h3>
-                <div class="subtitle">Güne ne kadar kontrollü girdin?</div>
-              </div>
-              <div class="status-tag" id="wakeStatusTag">Kayıt yok</div>
-            </div>
-            <div class="zone-line" id="wakeZoneText"></div>
-            <div class="form-grid">
-              <input type="time" id="wakeInput">
-              <button class="btn btn-primary" id="wakeBtn" type="button">Kaydet</button>
-            </div>
-            <p class="helper" id="wakeHelper"></p>
-            <div class="reward-line" id="wakeResultLine">Uygun zaman aralığına göre odak ve genel XP hesaplanır.</div>
-          </article>
-
-          <article class="action-card">
-            <div class="action-top">
-              <div>
-                <h3>Çalışma</h3>
-                <div class="subtitle">Asıl grind burada başlar.</div>
-              </div>
-              <div class="status-tag" id="studyStatusTag">Kayıt yok</div>
-            </div>
-            <div class="zone-line" id="studyZoneText"></div>
-            <div class="form-grid">
-              <input type="number" id="studyInput" min="0" max="720" placeholder="Dakika">
-              <button class="btn btn-primary" id="studyBtn" type="button">Kaydet</button>
-            </div>
-            <p class="helper" id="studyHelper"></p>
-            <div class="reward-line" id="studyResultLine">Çalışma süresi arttıkça XP yavaş ama istikrarlı büyür.</div>
-          </article>
-
-          <article class="action-card">
-            <div class="action-top">
-              <div>
-                <h3>Antrenman</h3>
-                <div class="subtitle">Güç; devamlılıkla oluşur.</div>
-              </div>
-              <div class="status-tag" id="workoutStatusTag">Kayıt yok</div>
-            </div>
-            <div class="zone-line" id="workoutZoneText"></div>
-            <div class="form-grid">
-              <input type="number" id="workoutInput" min="0" max="360" placeholder="Dakika">
-              <button class="btn btn-primary" id="workoutBtn" type="button">Kaydet</button>
-            </div>
-            <p class="helper" id="workoutHelper"></p>
-            <div class="reward-line" id="workoutResultLine">Kısa ama dürüst efor, güç hanesine yazılır. Tekrarlı kaçış daha sert ceza üretir.</div>
-          </article>
-
-          <article class="action-card">
-            <div class="action-top">
-              <div>
-                <h3>Ekran Süresi</h3>
-                <div class="subtitle">Odak, dikkat dağınıklığını yönetebilme becerisi.</div>
-              </div>
-              <div class="status-tag" id="screenStatusTag">Kayıt yok</div>
-            </div>
-            <div class="zone-line" id="screenZoneText"></div>
-            <div class="form-grid">
-              <input type="number" id="screenInput" min="0" max="1440" placeholder="Dakika">
-              <button class="btn btn-primary" id="screenBtn" type="button">Kaydet</button>
-            </div>
-            <p class="helper" id="screenHelper"></p>
-            <div class="reward-line" id="screenResultLine">Limitin altında kalmak odak XP üretir. Fazla ekran, tekrar ederse baskıyı artırır.</div>
-          </article>
-        </div>
-
-        <div class="closeout-card">
-          <div class="closeout-result">
-            <div>
-              <div class="eyebrow">Gün Kapanışı</div>
-              <h3 id="closeoutTitle">Bugün henüz kapanmadı</h3>
-            </div>
-            <div class="status-tag" id="closeoutTag">Hazır değil</div>
-          </div>
-          <p class="helper" id="closeoutHelper">Kapanışta puan hesaplanır, gün SUCCESS veya FAIL olarak geçmişe eklenir, seri ve koruma hakkı güncellenir.</p>
-          <button class="btn btn-primary" id="closeDayBtn" type="button">Günü Kapat</button>
-        </div>
-      </section>
-    </section>
-
-    <section class="dashboard-grid" id="secondaryGrid">
-      <section class="history-panel panel" id="archiveSection">
-        <div class="section-head">
-          <div>
-            <div class="eyebrow">Arşiv</div>
-            <h2>Geçmiş Günler</h2>
-            <p>En yeni kayıt üstte görünür. Her gün; sonuç, kısa özet ve alan bazlı etiketlerle saklanır.</p>
-          </div>
-        </div>
-        <div class="history-list" id="historyList"></div>
-      </section>
-
-      <section class="settings-panel panel" id="settingsSection">
-        <div class="section-head">
-          <div>
-            <div class="eyebrow">Kontrol</div>
-            <h2>Ayarlar</h2>
-            <p>Hedefleri kendi gerçek hayatına göre ayarla. Sistem sert olabilir ama saçma olmamalı.</p>
-          </div>
-        </div>
-
-        <div class="settings-stack">
-          <article class="settings-card">
-            <h3>Günlük Hedefler</h3>
-            <p>Çalışma, uyanış ve ekran sınırı gün sonu puanına doğrudan girer. Zorluk seviyesi antrenman eşiğini ve ceza baskısını etkiler.</p>
-            <div class="settings-grid">
-              <div class="settings-item">
-                <label for="settingStudyTarget">Minimum çalışma süresi</label>
-                <input type="number" id="settingStudyTarget" min="30" max="720">
-              </div>
-              <div class="settings-item">
-                <label for="settingWakeTarget">Hedef uyanış saati</label>
-                <input type="time" id="settingWakeTarget">
-              </div>
-              <div class="settings-item">
-                <label for="settingScreenLimit">Ekran süresi limiti</label>
-                <input type="number" id="settingScreenLimit" min="30" max="1440">
-              </div>
-              <div class="settings-item">
-                <label for="settingDifficulty">Zorluk modu</label>
-                <select id="settingDifficulty">
-                  <option value="easy">Kolay</option>
-                  <option value="normal">Normal</option>
-                  <option value="hard">Zor</option>
-                </select>
-              </div>
-            </div>
-          </article>
-
-          <article class="settings-card">
-            <h3>Arka Plan</h3>
-            <p>Stoik arka plan tamamen opsiyonel. Dikkat dağıtıyorsa kapatabilir ya da opaklığını azaltabilirsin.</p>
-            <div class="compact-grid">
-              <div class="settings-item">
-                <label for="settingBackgroundToggle">Arka plan görünürlüğü</label>
-                <select id="settingBackgroundToggle">
-                  <option value="on">Açık</option>
-                  <option value="off">Kapalı</option>
-                </select>
-              </div>
-              <div class="settings-item range-wrap">
-                <label for="settingBackgroundOpacity">Arka plan opaklığı</label>
-                <input type="range" id="settingBackgroundOpacity" min="0" max="35" step="1">
-                <div class="helper" id="backgroundOpacityText">%18</div>
-              </div>
-            </div>
-          </article>
-
-          <article class="settings-card">
-            <h3>Veri Yönetimi</h3>
-            <p>Tüm ilerleme yerel depolamada tutulur. Sıfırlama; seviye, XP, istatistikler, seri, koruma ve geçmiş dahil her şeyi temizler.</p>
-            <div class="settings-actions">
-              <button class="btn btn-primary" id="saveSettingsBtn" type="button">Ayarları Kaydet</button>
-              <button class="btn btn-danger" id="resetBtn" type="button">Tüm Veriyi Sıfırla</button>
-            </div>
-          </article>
-        </div>
-      </section>
-    </section>
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <h1>DİSİPLİN</h1>
+      <p>Kendi savaşını kazan</p>
+    </div>
+    <div class="date-badge" id="dateBadge">—</div>
   </div>
 
-  <div class="toast-wrap" id="toastWrap"></div>
+  <!-- PLAYER CARD -->
+  <div class="player-card">
+    <div class="level-row">
+      <div class="level-num" id="levelNum">1</div>
+      <div>
+        <div class="level-label">Seviye</div>
+        <div id="rankTitle" style="font-size:12px;color:var(--text-dim);margin-top:2px;">Çaylak</div>
+      </div>
+    </div>
 
-  <div class="modal-backdrop" id="resetModal" aria-hidden="true">
-    <div class="modal">
-      <h3>Her şeyi sıfırlamak istediğine emin misin?</h3>
-      <p>Bu işlem geri alınamaz. Tüm XP, seviye, nitelikler, seri, koruma hakları ve geçmiş kayıtlar silinir.</p>
-      <div class="modal-actions">
-        <button class="btn btn-secondary" id="cancelResetBtn" type="button">Vazgeç</button>
-        <button class="btn btn-danger" id="confirmResetBtn" type="button">Evet, sıfırla</button>
+    <div class="xp-section">
+      <div class="xp-label-row">
+        <span>Deneyim (XP)</span>
+        <strong id="xpText">0 / 100</strong>
+      </div>
+      <div class="xp-bar-track">
+        <div class="xp-bar-fill" id="xpBar"></div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-icon">🧠</div>
+        <div class="stat-value" id="statInt">10</div>
+        <div class="stat-name">Zeka</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-icon">💪</div>
+        <div class="stat-value" id="statStr">10</div>
+        <div class="stat-name">Güç</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-value" id="statFoc">10</div>
+        <div class="stat-name">Odak</div>
       </div>
     </div>
   </div>
 
-  <script>
-    const STORAGE_KEY = "disciplineRPG_v4";
-    let currentTab = "home";
-    const DAY_NAMES = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
-    const MONTH_NAMES = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
-
-    const DIFFICULTY_CONFIG = {
-      easy: {
-        label: "Kolay",
-        studyPartialRatio: 0.6,
-        workoutTarget: 20,
-        workoutPartialRatio: 0.5,
-        wakePartialMinutes: 25,
-        screenGrace: 25,
-        penaltyScale: 0.85
-      },
-      normal: {
-        label: "Normal",
-        studyPartialRatio: 0.7,
-        workoutTarget: 30,
-        workoutPartialRatio: 0.65,
-        wakePartialMinutes: 20,
-        screenGrace: 20,
-        penaltyScale: 1
-      },
-      hard: {
-        label: "Zor",
-        studyPartialRatio: 0.78,
-        workoutTarget: 40,
-        workoutPartialRatio: 0.7,
-        wakePartialMinutes: 15,
-        screenGrace: 10,
-        penaltyScale: 1.15
-      }
-    };
-
-    const ACTION_LABELS = {
-      wake: "Uyanış",
-      study: "Çalışma",
-      workout: "Antrenman",
-      screen: "Ekran"
-    };
-
-    function makeDefaultAction() {
-      return {
-        logged: false,
-        tier: null,
-        xp: 0,
-        statChanges: { int: 0, str: 0, focus: 0 },
-        details: {},
-        bonusText: ""
-      };
-    }
-
-    function createToday(date) {
-      return {
-        date,
-        micro: {
-          studyStart: false,
-          focusBlock: false
-        },
-        dayNetXp: 0,
-        dayScore: 0,
-        actions: {
-          wake: makeDefaultAction(),
-          study: makeDefaultAction(),
-          workout: makeDefaultAction(),
-          screen: makeDefaultAction()
-        },
-        closure: {
-          closed: false,
-          result: null,
-          summary: "",
-          usedShield: false,
-          points: 0
-        }
-      };
-    }
-
-    function createDefaultState() {
-      const today = currentDateKey();
-      return {
-        version: 4,
-        totalXp: 0,
-        stats: {
-          int: 0,
-          str: 0,
-          focus: 0
-        },
-        streak: 0,
-        streakProtection: 1,
-        pressure: 0,
-        settings: {
-          studyTargetMinutes: 120,
-          wakeTarget: "07:00",
-          screenLimitMinutes: 150,
-          difficulty: "normal",
-          backgroundEnabled: true,
-          backgroundOpacity: 18
-        },
-        today: createToday(today),
-        history: [],
-        lastLevelUpAt: null
-      };
-    }
-
-    let state = createDefaultState();
-
-    function currentDateKey() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const day = String(now.getDate()).padStart(2, "0");
-      return year + "-" + month + "-" + day;
-    }
-
-    function parseDateKey(dateKey) {
-      const parts = dateKey.split("-").map(Number);
-      return new Date(parts[0], parts[1] - 1, parts[2]);
-    }
-
-    function formatDate(dateKey) {
-      const date = parseDateKey(dateKey);
-      return date.getDate() + " " + MONTH_NAMES[date.getMonth()] + " " + date.getFullYear();
-    }
-
-    function formatTodayDetailed(dateKey) {
-      const date = parseDateKey(dateKey);
-      return DAY_NAMES[date.getDay()] + ", " + formatDate(dateKey);
-    }
-
-    function daysBetween(startKey, endKey) {
-      const start = parseDateKey(startKey);
-      const end = parseDateKey(endKey);
-      const diff = end.getTime() - start.getTime();
-      return Math.floor(diff / 86400000);
-    }
-
-    function addDays(dateKey, amount) {
-      const date = parseDateKey(dateKey);
-      date.setDate(date.getDate() + amount);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return year + "-" + month + "-" + day;
-    }
-
-    function deepMerge(base, incoming) {
-      if (typeof base !== "object" || base === null) {
-        return incoming;
-      }
-      const output = Array.isArray(base) ? [...base] : { ...base };
-      for (const key in incoming) {
-        if (!Object.prototype.hasOwnProperty.call(incoming, key)) {
-          continue;
-        }
-        if (incoming[key] && typeof incoming[key] === "object" && !Array.isArray(incoming[key]) && base[key] && typeof base[key] === "object" && !Array.isArray(base[key])) {
-          output[key] = deepMerge(base[key], incoming[key]);
-        } else {
-          output[key] = incoming[key];
-        }
-      }
-      return output;
-    }
-
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) {
-          state = createDefaultState();
-          return;
-        }
-        const parsed = JSON.parse(raw);
-        const merged = deepMerge(createDefaultState(), parsed || {});
-        merged.history = Array.isArray(parsed.history) ? parsed.history : [];
-        state = merged;
-      } catch (error) {
-        state = createDefaultState();
-      }
-      normalizeState();
-    }
-
-    function normalizeState() {
-      if (!state.today || typeof state.today !== "object") {
-        state.today = createToday(currentDateKey());
-      }
-      if (!state.today.actions) {
-        state.today.actions = {
-          wake: makeDefaultAction(),
-          study: makeDefaultAction(),
-          workout: makeDefaultAction(),
-          screen: makeDefaultAction()
-        };
-      }
-      for (const key of ["wake", "study", "workout", "screen"]) {
-        state.today.actions[key] = deepMerge(makeDefaultAction(), state.today.actions[key] || {});
-      }
-      state.today.micro = deepMerge({ studyStart: false, focusBlock: false }, state.today.micro || {});
-      state.today.closure = deepMerge({ closed: false, result: null, summary: "", usedShield: false, points: 0 }, state.today.closure || {});
-      state.settings = deepMerge(createDefaultState().settings, state.settings || {});
-      state.stats = deepMerge({ int: 0, str: 0, focus: 0 }, state.stats || {});
-      state.streak = Number.isFinite(state.streak) ? state.streak : 0;
-      state.streakProtection = clamp(Math.round(state.streakProtection || 0), 0, 2);
-      state.pressure = Math.max(0, Math.round(state.pressure || 0));
-      state.totalXp = Math.max(0, Math.round(state.totalXp || 0));
-      state.history = Array.isArray(state.history) ? state.history.slice(0, 120) : [];
-      rolloverIfNeeded();
-    }
-
-    function saveState() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
-
-    function clamp(value, min, max) {
-      return Math.min(max, Math.max(min, value));
-    }
-
-    function levelThreshold(level) {
-      if (level <= 1) {
-        return 0;
-      }
-      let total = 0;
-      let increment = 100;
-      for (let current = 2; current <= level; current += 1) {
-        total += increment;
-        increment += 50;
-      }
-      return total;
-    }
-
-    function getLevelInfo(totalXp) {
-      let level = 1;
-      while (totalXp >= levelThreshold(level + 1)) {
-        level += 1;
-      }
-      const currentThreshold = levelThreshold(level);
-      const nextThreshold = levelThreshold(level + 1);
-      const inLevel = totalXp - currentThreshold;
-      const needed = nextThreshold - currentThreshold;
-      return {
-        level,
-        currentThreshold,
-        nextThreshold,
-        inLevel,
-        needed,
-        progress: needed === 0 ? 1 : inLevel / needed
-      };
-    }
-
-    function rankForLevel(level) {
-      if (level >= 18) return "Demir İrade";
-      if (level >= 14) return "Sert Çekirdek";
-      if (level >= 10) return "Düzen Kurucu";
-      if (level >= 7) return "İstikrarlı";
-      if (level >= 4) return "Toparlanan";
-      return "Acemi";
-    }
-
-    function difficultyConfig() {
-      return DIFFICULTY_CONFIG[state.settings.difficulty] || DIFFICULTY_CONFIG.normal;
-    }
-
-    function minutesFromTime(value) {
-      const parts = value.split(":").map(Number);
-      return parts[0] * 60 + parts[1];
-    }
-
-    function formatMinutes(mins) {
-      const hours = Math.floor(mins / 60);
-      const minutes = mins % 60;
-      if (hours > 0 && minutes > 0) {
-        return hours + " sa " + minutes + " dk";
-      }
-      if (hours > 0) {
-        return hours + " sa";
-      }
-      return minutes + " dk";
-    }
-
-    function multiplierText(multiplier) {
-      if (multiplier <= 1) {
-        return "";
-      }
-      const percent = Math.round((multiplier - 1) * 100);
-      return " x" + (1 + percent / 100).toFixed(2).replace(".", ",");
-    }
-
-    function pickBonus(actionKey, tier) {
-      if (tier === "fail") {
-        return { multiplier: 1, bonusXp: 0, label: "" };
-      }
-      const chance = tier === "perfect" ? 0.28 : 0.14;
-      if (Math.random() > chance) {
-        return { multiplier: 1, bonusXp: 0, label: "" };
-      }
-      const multiplier = tier === "perfect" ? 1.18 + Math.random() * 0.12 : 1.08 + Math.random() * 0.08;
-      const bonusXp = tier === "perfect" ? 4 + Math.floor(Math.random() * 6) : 2 + Math.floor(Math.random() * 4);
-      const labels = {
-        wake: "Sabah ivmesi",
-        study: "Derin odak",
-        workout: "Form yükselişi",
-        screen: "Temiz zihin"
-      };
-      return {
-        multiplier,
-        bonusXp,
-        label: labels[actionKey] + " +" + bonusXp + " XP" + multiplierText(multiplier)
-      };
-    }
-
-    function applyReward(actionKey, payload) {
-      const action = state.today.actions[actionKey];
-      if (action.logged || state.today.closure.closed) {
-        return false;
-      }
-
-      const oldLevel = getLevelInfo(state.totalXp).level;
-      const roundedXp = Math.round(payload.xp);
-      action.logged = true;
-      action.tier = payload.tier;
-      action.xp = roundedXp;
-      action.details = payload.details || {};
-      action.bonusText = payload.bonusText || "";
-      action.statChanges = {
-        int: payload.statChanges.int || 0,
-        str: payload.statChanges.str || 0,
-        focus: payload.statChanges.focus || 0
-      };
-
-      state.totalXp = Math.max(0, state.totalXp + roundedXp);
-      state.stats.int = Math.max(0, state.stats.int + action.statChanges.int);
-      state.stats.str = Math.max(0, state.stats.str + action.statChanges.str);
-      state.stats.focus = Math.max(0, state.stats.focus + action.statChanges.focus);
-      state.today.dayNetXp += roundedXp;
-
-      const newLevel = getLevelInfo(state.totalXp).level;
-      if (newLevel > oldLevel) {
-        state.lastLevelUpAt = Date.now();
-        flashLevel();
-        toast("Seviye atladın. Artık " + newLevel + ". seviyedesin.", "good");
-      }
-
-      saveState();
-      render();
-      return true;
-    }
-
-    function evaluateWake(actualTime) {
-      const target = minutesFromTime(state.settings.wakeTarget);
-      const actual = minutesFromTime(actualTime);
-      const delta = actual - target;
-      const diffCfg = difficultyConfig();
-      let tier = "fail";
-      if (delta <= 0) {
-        tier = "perfect";
-      } else if (delta <= diffCfg.wakePartialMinutes) {
-        tier = "partial";
-      }
-
-      const pressurePenalty = Math.min(8, state.pressure * 2);
-      let xp = 0;
-      let focus = 0;
-      if (tier === "perfect") {
-        xp = 12 + Math.max(0, Math.round(Math.abs(delta) / 6));
-        focus = 6;
-      } else if (tier === "partial") {
-        xp = 6;
-        focus = 2;
-      } else {
-        xp = -Math.round((6 + pressurePenalty) * diffCfg.penaltyScale);
-        focus = -Math.max(1, Math.round((2 + state.pressure * 0.7) * diffCfg.penaltyScale));
-      }
-
-      const bonus = pickBonus("wake", tier);
-      if (xp > 0) {
-        xp = Math.round(xp * bonus.multiplier) + bonus.bonusXp;
-      }
-
-      return {
-        tier,
-        xp,
-        statChanges: { int: 0, str: 0, focus },
-        bonusText: bonus.label,
-        details: {
-          actualTime,
-          deltaMinutes: delta
-        }
-      };
-    }
-
-    function evaluateStudy(minutes) {
-      const target = state.settings.studyTargetMinutes;
-      const diffCfg = difficultyConfig();
-      const partialTarget = Math.ceil(target * diffCfg.studyPartialRatio);
-      let tier = "fail";
-      if (minutes >= target) {
-        tier = "perfect";
-      } else if (minutes >= partialTarget) {
-        tier = "partial";
-      }
-
-      const microBoost = state.today.micro.studyStart ? 4 : 0;
-      let xp = 0;
-      let intGain = 0;
-      if (tier === "perfect") {
-        xp = clamp(8 + Math.round(minutes / 8), 10, 40) + microBoost;
-        intGain = clamp(2 + Math.round(minutes / 45), 2, 7);
-      } else if (tier === "partial") {
-        xp = clamp(4 + Math.round(minutes / 12), 6, 22) + Math.floor(microBoost / 2);
-        intGain = clamp(1 + Math.round(minutes / 80), 1, 4);
-      } else {
-        xp = minutes >= 10 ? 2 : 0;
-        intGain = minutes >= 10 ? 1 : 0;
-      }
-
-      const bonus = pickBonus("study", tier);
-      if (xp > 0) {
-        xp = Math.round(xp * bonus.multiplier) + bonus.bonusXp;
-      }
-
-      return {
-        tier,
-        xp,
-        statChanges: { int: intGain, str: 0, focus: 0 },
-        bonusText: bonus.label,
-        details: {
-          minutes
-        }
-      };
-    }
-
-    function evaluateWorkout(minutes) {
-      const diffCfg = difficultyConfig();
-      const target = diffCfg.workoutTarget;
-      const partialTarget = Math.max(10, Math.ceil(target * diffCfg.workoutPartialRatio));
-      let tier = "fail";
-      if (minutes >= target) {
-        tier = "perfect";
-      } else if (minutes >= partialTarget) {
-        tier = "partial";
-      }
-
-      const pressurePenalty = Math.min(10, state.pressure * 2);
-      let xp = 0;
-      let strGain = 0;
-      if (tier === "perfect") {
-        xp = clamp(10 + Math.round(minutes / 5), 15, 48);
-        strGain = clamp(2 + Math.round(minutes / 20), 2, 6);
-      } else if (tier === "partial") {
-        xp = clamp(5 + Math.round(minutes / 8), 8, 22);
-        strGain = clamp(1 + Math.round(minutes / 35), 1, 3);
-      } else {
-        xp = minutes >= 10 ? 3 : -Math.round((6 + pressurePenalty) * diffCfg.penaltyScale);
-        strGain = minutes >= 10 ? 1 : -Math.max(1, Math.round((1 + state.pressure * 0.6) * diffCfg.penaltyScale));
-      }
-
-      const bonus = pickBonus("workout", tier);
-      if (xp > 0) {
-        xp = Math.round(xp * bonus.multiplier) + bonus.bonusXp;
-      }
-
-      return {
-        tier,
-        xp,
-        statChanges: { int: 0, str: strGain, focus: 0 },
-        bonusText: bonus.label,
-        details: {
-          minutes
-        }
-      };
-    }
-
-    function evaluateScreen(minutes) {
-      const limit = state.settings.screenLimitMinutes;
-      const diffCfg = difficultyConfig();
-      const grace = diffCfg.screenGrace;
-      let tier = "fail";
-      if (minutes <= limit) {
-        tier = "perfect";
-      } else if (minutes <= limit + grace) {
-        tier = "partial";
-      }
-
-      const underLimit = Math.max(0, limit - minutes);
-      const overLimit = Math.max(0, minutes - limit);
-      const pressurePenalty = Math.min(12, state.pressure * 2);
-      let xp = 0;
-      let focusGain = 0;
-      if (tier === "perfect") {
-        xp = clamp(10 + Math.round(underLimit / 12), 10, 24);
-        focusGain = clamp(3 + Math.round(underLimit / 45), 3, 8);
-      } else if (tier === "partial") {
-        xp = 5;
-        focusGain = 1;
-      } else {
-        xp = -Math.round((8 + Math.round(overLimit / 18) + pressurePenalty) * diffCfg.penaltyScale);
-        focusGain = -Math.max(1, Math.round((2 + overLimit / 50 + state.pressure * 0.7) * diffCfg.penaltyScale));
-      }
-
-      const bonus = pickBonus("screen", tier);
-      if (xp > 0) {
-        xp = Math.round(xp * bonus.multiplier) + bonus.bonusXp;
-      }
-
-      return {
-        tier,
-        xp,
-        statChanges: { int: 0, str: 0, focus: focusGain },
-        bonusText: bonus.label,
-        details: {
-          minutes
-        }
-      };
-    }
-
-    function actionPoints(action) {
-      if (!action.logged) return 0;
-      if (action.tier === "perfect") return 2;
-      if (action.tier === "partial") return 1;
-      return 0;
-    }
-
-    function calculateDayScore(today) {
-      return actionPoints(today.actions.wake) +
-        actionPoints(today.actions.study) +
-        actionPoints(today.actions.workout) +
-        actionPoints(today.actions.screen);
-    }
-
-    function closeDay(auto = false, customDateKey = null, customToday = null) {
-      const targetToday = customToday || state.today;
-      if (targetToday.closure.closed) {
-        return null;
-      }
-
-      const oldLevel = getLevelInfo(state.totalXp).level;
-      const score = calculateDayScore(targetToday);
-      const result = score >= 5 ? "SUCCESS" : "FAIL";
-      let summary = buildDaySummary(targetToday, result, score);
-      let usedShield = false;
-      const pressureBefore = state.pressure;
-
-      if (result === "SUCCESS") {
-        state.streak += 1;
-        state.pressure = Math.max(0, state.pressure - 1);
-        const bonusXp = 8 + Math.min(12, state.streak * 2);
-        state.totalXp += bonusXp;
-        targetToday.dayNetXp += bonusXp;
-        summary += " Gün sonu bonusu +" + bonusXp + " XP.";
-        if (state.streak % 4 === 0) {
-          state.streakProtection = clamp(state.streakProtection + 1, 0, 2);
-          summary += " Koruma hakkı yenilendi.";
-        }
-      } else {
-        state.pressure += 1;
-        const failPenalty = Math.round((6 + pressureBefore * 3) * difficultyConfig().penaltyScale);
-        state.totalXp = Math.max(0, state.totalXp - failPenalty);
-        targetToday.dayNetXp -= failPenalty;
-        summary += " Gün sonu cezası -" + failPenalty + " XP.";
-        if (state.streakProtection > 0) {
-          state.streakProtection -= 1;
-          usedShield = true;
-          summary += " Seri korundu, çünkü bir koruma hakkı harcandı.";
-        } else {
-          state.streak = 0;
-          summary += " Seri sıfırlandı.";
-        }
-      }
-
-      state.totalXp = Math.max(0, state.totalXp);
-      const newLevel = getLevelInfo(state.totalXp).level;
-      if (newLevel > oldLevel) {
-        state.lastLevelUpAt = Date.now();
-        flashLevel();
-        if (!auto) {
-          toast("Gün sonu XP'siyle seviye atladın. Yeni seviye: " + newLevel + ".", "good");
-        }
-      }
-      targetToday.dayScore = score;
-      targetToday.closure = {
-        closed: true,
-        result,
-        summary,
-        usedShield,
-        points: score
-      };
-
-      const dateKey = customDateKey || targetToday.date;
-      state.history.unshift({
-        date: dateKey,
-        result,
-        summary,
-        score,
-        usedShield,
-        xp: targetToday.dayNetXp,
-        actions: {
-          wake: summarizeAction(targetToday.actions.wake),
-          study: summarizeAction(targetToday.actions.study),
-          workout: summarizeAction(targetToday.actions.workout),
-          screen: summarizeAction(targetToday.actions.screen)
-        }
-      });
-      state.history = state.history
-        .sort((a, b) => b.date.localeCompare(a.date))
-        .slice(0, 120);
-
-      if (!auto) {
-        if (result === "SUCCESS") {
-          toast("Gün kapandı: SUCCESS. Disiplin çizgisi korundu.", "good");
-        } else if (usedShield) {
-          toast("Gün FAIL ama koruma hakkı seriyi tuttu.", "warn");
-        } else {
-          toast("Gün FAIL. Baskı arttı, seri sıfırlandı.", "bad");
-        }
-      }
-
-      saveState();
-      return result;
-    }
-
-    function summarizeAction(action) {
-      return {
-        logged: action.logged,
-        tier: action.tier,
-        xp: action.xp,
-        details: action.details
-      };
-    }
-
-    function buildDaySummary(today, result, score) {
-      const actionTexts = [];
-      for (const key of ["wake", "study", "workout", "screen"]) {
-        const action = today.actions[key];
-        const label = ACTION_LABELS[key];
-        if (!action.logged) {
-          actionTexts.push(label + ": kayıt yok");
-          continue;
-        }
-        const tierText = action.tier === "perfect" ? "kusursuz" : action.tier === "partial" ? "kabul edilebilir" : "başarısız";
-        actionTexts.push(label + ": " + tierText);
-      }
-      return result + " - " + score + "/8 puan. " + actionTexts.join(", ") + ".";
-    }
-
-    function rolloverIfNeeded() {
-      const todayKey = currentDateKey();
-      if (state.today.date === todayKey) {
-        return;
-      }
-
-      const diff = daysBetween(state.today.date, todayKey);
-      if (diff <= 0) {
-        state.today = createToday(todayKey);
-        return;
-      }
-
-      const oldToday = state.today;
-      closeDay(true, oldToday.date, oldToday);
-
-      for (let step = 1; step < diff; step += 1) {
-        const missedDate = addDays(oldToday.date, step);
-        const blankDay = createToday(missedDate);
-        closeDay(true, missedDate, blankDay);
-      }
-
-      state.today = createToday(todayKey);
-      saveState();
-    }
-
-    function saveSettings() {
-      const studyTarget = clamp(parseInt(document.getElementById("settingStudyTarget").value, 10) || 120, 30, 720);
-      const wakeTarget = document.getElementById("settingWakeTarget").value || "07:00";
-      const screenLimit = clamp(parseInt(document.getElementById("settingScreenLimit").value, 10) || 150, 30, 1440);
-      const difficulty = document.getElementById("settingDifficulty").value;
-      const backgroundEnabled = document.getElementById("settingBackgroundToggle").value === "on";
-      const backgroundOpacity = clamp(parseInt(document.getElementById("settingBackgroundOpacity").value, 10) || 0, 0, 35);
-
-      state.settings.studyTargetMinutes = studyTarget;
-      state.settings.wakeTarget = wakeTarget;
-      state.settings.screenLimitMinutes = screenLimit;
-      state.settings.difficulty = DIFFICULTY_CONFIG[difficulty] ? difficulty : "normal";
-      state.settings.backgroundEnabled = backgroundEnabled;
-      state.settings.backgroundOpacity = backgroundOpacity;
-
-      saveState();
-      render();
-      toast("Ayarlar güncellendi.", "good");
-    }
-
-    function switchTab(tab) {
-      const allowedTabs = ["home", "archive", "settings"];
-      currentTab = allowedTabs.includes(tab) ? tab : "home";
-      renderTabs();
-    }
-
-    function renderTabs() {
-      const isHome = currentTab === "home";
-      const isArchive = currentTab === "archive";
-      const isSettings = currentTab === "settings";
-
-      document.getElementById("homeHeroSection").hidden = !isHome;
-      document.getElementById("homeMainSection").hidden = !isHome;
-
-      const secondaryGrid = document.getElementById("secondaryGrid");
-      secondaryGrid.hidden = !(isArchive || isSettings);
-      secondaryGrid.classList.toggle("single-mode", isArchive || isSettings);
-
-      document.getElementById("archiveSection").hidden = !isArchive;
-      document.getElementById("settingsSection").hidden = !isSettings;
-
-      document.querySelectorAll("[data-tab]").forEach((button) => {
-        button.classList.toggle("active", button.dataset.tab === currentTab);
-      });
-    }
-
-    function logWake() {
-      const input = document.getElementById("wakeInput");
-      if (!input.value) {
-        toast("Uyanış saatini girmen gerekiyor.", "warn");
-        return;
-      }
-      const reward = evaluateWake(input.value);
-      if (applyReward("wake", reward)) {
-        toast(resultMessage("Uyanış", reward), reward.tier === "fail" ? "bad" : reward.tier === "partial" ? "warn" : "good");
-      }
-    }
-
-    function logStudy() {
-      const minutes = clamp(parseInt(document.getElementById("studyInput").value, 10) || 0, 0, 720);
-      const reward = evaluateStudy(minutes);
-      if (applyReward("study", reward)) {
-        toast(resultMessage("Çalışma", reward), reward.tier === "fail" ? "bad" : reward.tier === "partial" ? "warn" : "good");
-      }
-    }
-
-    function logWorkout() {
-      const minutes = clamp(parseInt(document.getElementById("workoutInput").value, 10) || 0, 0, 360);
-      const reward = evaluateWorkout(minutes);
-      if (applyReward("workout", reward)) {
-        toast(resultMessage("Antrenman", reward), reward.tier === "fail" ? "bad" : reward.tier === "partial" ? "warn" : "good");
-      }
-    }
-
-    function logScreen() {
-      const minutes = clamp(parseInt(document.getElementById("screenInput").value, 10) || 0, 0, 1440);
-      const reward = evaluateScreen(minutes);
-      if (applyReward("screen", reward)) {
-        toast(resultMessage("Ekran", reward), reward.tier === "fail" ? "bad" : reward.tier === "partial" ? "warn" : "good");
-      }
-    }
-
-    function logMicro(kind) {
-      if (state.today.closure.closed) {
-        toast("Gün kapandıktan sonra mikro hedef işlenmez.", "warn");
-        return;
-      }
-
-      if (kind === "study" && !state.today.micro.studyStart) {
-        const oldLevel = getLevelInfo(state.totalXp).level;
-        state.today.micro.studyStart = true;
-        state.totalXp += 4;
-        state.stats.int += 1;
-        state.today.dayNetXp += 4;
-        const newLevel = getLevelInfo(state.totalXp).level;
-        if (newLevel > oldLevel) {
-          state.lastLevelUpAt = Date.now();
-          flashLevel();
-        }
-        saveState();
-        render();
-        toast("Mikro başlangıç işlendi. +4 XP, +1 Zeka.", "good");
-        return;
-      }
-
-      if (kind === "focus" && !state.today.micro.focusBlock) {
-        const oldLevel = getLevelInfo(state.totalXp).level;
-        state.today.micro.focusBlock = true;
-        state.totalXp += 3;
-        state.stats.focus += 1;
-        state.today.dayNetXp += 3;
-        const newLevel = getLevelInfo(state.totalXp).level;
-        if (newLevel > oldLevel) {
-          state.lastLevelUpAt = Date.now();
-          flashLevel();
-        }
-        saveState();
-        render();
-        toast("Odak bloğu işlendi. +3 XP, +1 Odak.", "good");
-        return;
-      }
-
-      toast("Bu mikro hedef bugün zaten işlendi.", "warn");
-    }
-
-    function resultMessage(label, reward) {
-      const tierText = reward.tier === "perfect" ? "kusursuz" : reward.tier === "partial" ? "kabul edilebilir" : "başarısız";
-      const xpText = reward.xp >= 0 ? "+" + reward.xp : reward.xp;
-      return label + " kaydı: " + tierText + ". " + xpText + " XP.";
-    }
-
-    function resetAllData() {
-      localStorage.removeItem(STORAGE_KEY);
-      state = createDefaultState();
-      saveState();
-      closeResetModal();
-      render();
-      toast("Tüm veriler sıfırlandı.", "warn");
-    }
-
-    function openResetModal() {
-      const modal = document.getElementById("resetModal");
-      modal.classList.add("open");
-      modal.setAttribute("aria-hidden", "false");
-    }
-
-    function closeResetModal() {
-      const modal = document.getElementById("resetModal");
-      modal.classList.remove("open");
-      modal.setAttribute("aria-hidden", "true");
-    }
-
-    function toast(message, type) {
-      const wrap = document.getElementById("toastWrap");
-      const node = document.createElement("div");
-      node.className = "toast " + (type || "");
-      node.textContent = message;
-      wrap.appendChild(node);
-      window.setTimeout(() => {
-        node.style.opacity = "0";
-        node.style.transform = "translateY(8px)";
-      }, 2800);
-      window.setTimeout(() => {
-        node.remove();
-      }, 3200);
-    }
-
-    function flashLevel() {
-      document.documentElement.style.setProperty("--level-glow", "1");
-      window.setTimeout(() => {
-        document.documentElement.style.setProperty("--level-glow", "0");
-      }, 900);
-    }
-
-    function applyBackgroundSettings() {
-      document.body.classList.toggle("bg-hidden", !state.settings.backgroundEnabled);
-      document.documentElement.style.setProperty("--bg-opacity", String(state.settings.backgroundOpacity / 100));
-      document.getElementById("backgroundOpacityText").textContent = "%" + state.settings.backgroundOpacity;
-    }
-
-    function previewBackgroundSettings() {
-      const enabled = document.getElementById("settingBackgroundToggle").value === "on";
-      const opacity = clamp(parseInt(document.getElementById("settingBackgroundOpacity").value, 10) || 0, 0, 35);
-      document.body.classList.toggle("bg-hidden", !enabled);
-      document.documentElement.style.setProperty("--bg-opacity", String(opacity / 100));
-      document.getElementById("backgroundOpacityText").textContent = "%" + opacity;
-    }
-
-    function renderStatusTag(elementId, action) {
-      const el = document.getElementById(elementId);
-      el.className = "status-tag";
-      if (!action.logged) {
-        el.textContent = "Kayıt yok";
-        return;
-      }
-      if (action.tier === "perfect") {
-        el.classList.add("perfect");
-        el.textContent = "Kusursuz";
-      } else if (action.tier === "partial") {
-        el.classList.add("partial");
-        el.textContent = "Kabul edilebilir";
-      } else {
-        el.classList.add("fail");
-        el.textContent = "Başarısız";
-      }
-    }
-
-    function setZoneLine(elementId, chips) {
-      const el = document.getElementById(elementId);
-      el.innerHTML = chips.map((chip) => "<span class='zone-chip " + chip.type + "'>" + chip.text + "</span>").join("");
-    }
-
-    function renderInputs() {
-      const wakeTarget = state.settings.wakeTarget;
-      const studyTarget = state.settings.studyTargetMinutes;
-      const screenLimit = state.settings.screenLimitMinutes;
-      const diffCfg = difficultyConfig();
-      const workoutTarget = diffCfg.workoutTarget;
-
-      const wakeAcceptText = diffCfg.wakePartialMinutes + " dk gecikmeye kadar";
-      setZoneLine("wakeZoneText", [
-        { type: "perfect", text: "Kusursuz: " + wakeTarget + " ve öncesi" },
-        { type: "partial", text: "Kabul: " + wakeAcceptText },
-        { type: "fail", text: "Fail: daha geç" }
-      ]);
-      setZoneLine("studyZoneText", [
-        { type: "perfect", text: "Kusursuz: " + studyTarget + " dk ve üstü" },
-        { type: "partial", text: "Kabul: en az " + Math.ceil(studyTarget * diffCfg.studyPartialRatio) + " dk" },
-        { type: "fail", text: "Fail: bunun altı" }
-      ]);
-      setZoneLine("workoutZoneText", [
-        { type: "perfect", text: "Kusursuz: " + workoutTarget + " dk ve üstü" },
-        { type: "partial", text: "Kabul: en az " + Math.ceil(workoutTarget * diffCfg.workoutPartialRatio) + " dk" },
-        { type: "fail", text: "Fail: bunun altı" }
-      ]);
-      setZoneLine("screenZoneText", [
-        { type: "perfect", text: "Kusursuz: " + screenLimit + " dk ve altı" },
-        { type: "partial", text: "Kabul: +" + diffCfg.screenGrace + " dk tolerans" },
-        { type: "fail", text: "Fail: bunun üstü" }
-      ]);
-
-      document.getElementById("wakeHelper").textContent = "Hedef saat " + wakeTarget + ". Sabah gecikmesi odak kaybını büyütür.";
-      document.getElementById("studyHelper").textContent = "Bugünkü minimum hedef " + formatMinutes(studyTarget) + ". Mikro başlangıç yaptıysan çalışma ödülü hafif güçlenir.";
-      document.getElementById("workoutHelper").textContent = "Bu zorlukta kusursuz antrenman eşiği " + workoutTarget + " dakika.";
-      document.getElementById("screenHelper").textContent = "Limit " + formatMinutes(screenLimit) + ". Altında kalmak odak tarafında en temiz kazancı üretir.";
-    }
-
-    function renderRewards() {
-      const actions = state.today.actions;
-      const rewardMap = [
-        ["wakeResultLine", actions.wake, function () {
-          if (!actions.wake.logged) return "Uygun zaman aralığına göre odak ve genel XP hesaplanır.";
-          return buildResultLine(actions.wake, "focus");
-        }],
-        ["studyResultLine", actions.study, function () {
-          if (!actions.study.logged) return "Çalışma süresi arttıkça XP yavaş ama istikrarlı büyür.";
-          return buildResultLine(actions.study, "int");
-        }],
-        ["workoutResultLine", actions.workout, function () {
-          if (!actions.workout.logged) return "Kısa ama dürüst efor, güç hanesine yazılır. Tekrarlı kaçış daha sert ceza üretir.";
-          return buildResultLine(actions.workout, "str");
-        }],
-        ["screenResultLine", actions.screen, function () {
-          if (!actions.screen.logged) return "Limitin altında kalmak odak XP üretir. Fazla ekran, tekrar ederse baskıyı artırır.";
-          return buildResultLine(actions.screen, "focus");
-        }]
-      ];
-
-      rewardMap.forEach(([id, , getText]) => {
-        document.getElementById(id).innerHTML = getText();
-      });
-    }
-
-    function buildResultLine(action, primaryStat) {
-      const tierText = action.tier === "perfect" ? "Kusursuz sonuç." : action.tier === "partial" ? "Kabul edilebilir sonuç." : "Başarısız sonuç.";
-      const xpText = action.xp >= 0 ? "+" + action.xp + " XP" : action.xp + " XP";
-      const statLabels = { int: "Zeka", str: "Güç", focus: "Odak" };
-      const statValue = action.statChanges[primaryStat] || 0;
-      const statText = statValue === 0 ? "Stat değişimi yok." : (statValue > 0 ? "+" + statValue : statValue) + " " + statLabels[primaryStat] + ".";
-      const bonusText = action.bonusText ? " Değişken ödül: <strong>" + action.bonusText + "</strong>." : "";
-      return tierText + " " + xpText + ". " + statText + bonusText;
-    }
-
-    function renderOverview() {
-      const levelInfo = getLevelInfo(state.totalXp);
-      const remaining = levelInfo.nextThreshold - state.totalXp;
-      document.getElementById("todayDateText").textContent = formatTodayDetailed(state.today.date);
-      document.getElementById("dateSubText").textContent = state.today.closure.closed ? "Gün kapandı ve geçmişe işlendi." : "Gün açık. Kapanış için kayıtlar bekleniyor.";
-
-      document.getElementById("levelNumber").textContent = levelInfo.level;
-      document.getElementById("rankTitle").textContent = rankForLevel(levelInfo.level);
-      document.getElementById("rankHint").textContent = remaining > 0 ? remaining + " XP sonra bir üst seviye." : "Üst seviye sınırı aşıldı.";
-      document.getElementById("xpSummary").textContent = "Toplam XP: " + state.totalXp;
-      document.getElementById("xpToNext").textContent = "Sonraki seviye: " + levelInfo.nextThreshold + " XP";
-      document.getElementById("xpFill").style.width = (levelInfo.progress * 100).toFixed(1) + "%";
-
-      document.getElementById("streakValue").textContent = state.streak;
-      document.getElementById("shieldValue").textContent = state.streakProtection;
-      document.getElementById("difficultyValue").textContent = difficultyConfig().label;
-      document.getElementById("difficultyHint").textContent = difficultyExplanation(state.settings.difficulty);
-      document.getElementById("dayStatusLabel").textContent = state.today.closure.closed ? state.today.closure.result : "Açık Gün";
-      document.getElementById("dayStatusHint").textContent = state.today.closure.closed ? state.today.closure.summary : "Henüz kapanmadı. Gün sonu kararı dört ana kayıt üzerinden hesaplanır.";
-
-      renderIdentity();
-      renderDaySummaryCard();
-    }
-
-    function renderIdentity() {
-      const score = calculateDayScore(state.today);
-      const closed = state.today.closure.closed;
-      let line = "Bugün kendini ciddiye alan biri gibi ilerliyorsun.";
-      let sub = "Kayıtlar geldikçe sistem günün tonunu netleştirir.";
-      if (closed) {
-        if (state.today.closure.result === "SUCCESS") {
-          line = "Bugün disiplinini savunan biri gibi kapattın.";
-          sub = state.today.closure.usedShield ? "Sonuç başarılı değil ama seri korunmuş durumda." : "Temiz bir kapanış yapıldı ve çizgi devam ediyor.";
-        } else if (state.today.closure.usedShield) {
-          line = "Bugün sendeledi ama çizgiyi tamamen bırakmadın.";
-          sub = "Koruma hakkı kötü günü yuttu. Yarın bu boşluğu doldurman gerekiyor.";
-        } else {
-          line = "Bugün sistem sana net bir uyarı yazdı.";
-          sub = "Ceza küçük olabilir ama tekrar ederse karakter eğrisi bozulur.";
-        }
-      } else if (score >= 5) {
-        line = "Bugünün omurgası şu anda sağlam görünüyor.";
-        sub = "Kapanışı bugün alırsan seri lehine çalışacak.";
-      } else if (score > 0) {
-        line = "Gün hâlâ kurtarılabilir ama gevşeklik payı azaldı.";
-        sub = "Eksik alanları tamamlamak, sonucun tonunu değiştirebilir.";
-      }
-      document.getElementById("identityLine").textContent = line;
-      document.getElementById("identitySub").textContent = sub;
-    }
-
-    function renderDaySummaryCard() {
-      const badge = document.getElementById("todayBadge");
-      const badgeText = document.getElementById("todayBadgeText");
-      const summary = document.getElementById("todaySummaryText");
-      const score = calculateDayScore(state.today);
-      document.getElementById("dayScoreValue").textContent = score + " / 8";
-      document.getElementById("pressureValue").textContent = state.pressure;
-      document.getElementById("todayNetXpValue").textContent = (state.today.dayNetXp >= 0 ? "+" : "") + state.today.dayNetXp + " XP";
-
-      badge.className = "today-badge";
-      const dot = badge.querySelector(".dot");
-      dot.className = "dot";
-
-      if (state.today.closure.closed) {
-        if (state.today.closure.result === "SUCCESS") {
-          dot.classList.add("good");
-          badgeText.textContent = "SUCCESS";
-        } else {
-          dot.classList.add(state.today.closure.usedShield ? "warn" : "bad");
-          badgeText.textContent = state.today.closure.usedShield ? "FAIL, seri korundu" : "FAIL";
-        }
-        summary.textContent = state.today.closure.summary;
-      } else if (score >= 5) {
-        dot.classList.add("good");
-        badgeText.textContent = "Kapanış için güçlü";
-        summary.textContent = "Şu anki puan kapanış eşiğini geçiyor. Kalan kayıtlar kötü gelmezse gün temiz şekilde SUCCESS yazabilir.";
-      } else if (score >= 2) {
-        dot.classList.add("warn");
-        badgeText.textContent = "Kritik bölgede";
-        summary.textContent = "Bir miktar ilerleme var ama kapanış güvenli değil. Özellikle çalışma ve ekran kayıtları sonuca sert etki eder.";
-      } else {
-        dot.classList.add("bad");
-        badgeText.textContent = "Zayıf başlangıç";
-        summary.textContent = "Gün şu an düşük puanda. Mikro hedefler ve kısmi kayıtlar bile kapanış sonucunu toparlayabilir.";
-      }
-    }
-
-    function difficultyExplanation(difficulty) {
-      if (difficulty === "easy") return "Daha yumuşak eşikler, biraz daha toleranslı cezalar.";
-      if (difficulty === "hard") return "Daha dar tolerans, daha sıkı antrenman ve daha sert baskı.";
-      return "Dengeli hedefler ve standart ceza/ödül düzeni.";
-    }
-
-    function renderStats() {
-      const todayDelta = todayStatDelta();
-      document.getElementById("statIntValue").textContent = state.stats.int;
-      document.getElementById("statStrValue").textContent = state.stats.str;
-      document.getElementById("statFocusValue").textContent = state.stats.focus;
-      document.getElementById("statIntDelta").textContent = "Bugün " + signedValue(todayDelta.int);
-      document.getElementById("statStrDelta").textContent = "Bugün " + signedValue(todayDelta.str);
-      document.getElementById("statFocusDelta").textContent = "Bugün " + signedValue(todayDelta.focus);
-
-      document.getElementById("statIntFill").style.width = clamp((state.stats.int % 25) / 25 * 100, 6, 100) + "%";
-      document.getElementById("statStrFill").style.width = clamp((state.stats.str % 25) / 25 * 100, 6, 100) + "%";
-      document.getElementById("statFocusFill").style.width = clamp((state.stats.focus % 25) / 25 * 100, 6, 100) + "%";
-    }
-
-    function signedValue(number) {
-      return (number >= 0 ? "+" : "") + number;
-    }
-
-    function todayStatDelta() {
-      const delta = { int: 0, str: 0, focus: 0 };
-      for (const key of ["wake", "study", "workout", "screen"]) {
-        const action = state.today.actions[key];
-        delta.int += action.statChanges.int || 0;
-        delta.str += action.statChanges.str || 0;
-        delta.focus += action.statChanges.focus || 0;
-      }
-      if (state.today.micro.studyStart) {
-        delta.int += 1;
-      }
-      if (state.today.micro.focusBlock) {
-        delta.focus += 1;
-      }
-      return delta;
-    }
-
-    function renderActionStates() {
-      renderStatusTag("wakeStatusTag", state.today.actions.wake);
-      renderStatusTag("studyStatusTag", state.today.actions.study);
-      renderStatusTag("workoutStatusTag", state.today.actions.workout);
-      renderStatusTag("screenStatusTag", state.today.actions.screen);
-
-      document.getElementById("wakeInput").value = state.today.actions.wake.details.actualTime || "";
-      document.getElementById("studyInput").value = state.today.actions.study.details.minutes || "";
-      document.getElementById("workoutInput").value = state.today.actions.workout.details.minutes || "";
-      document.getElementById("screenInput").value = state.today.actions.screen.details.minutes || "";
-
-      const closed = state.today.closure.closed;
-      const disableWake = closed || state.today.actions.wake.logged;
-      const disableStudy = closed || state.today.actions.study.logged;
-      const disableWorkout = closed || state.today.actions.workout.logged;
-      const disableScreen = closed || state.today.actions.screen.logged;
-
-      document.getElementById("wakeInput").disabled = disableWake;
-      document.getElementById("studyInput").disabled = disableStudy;
-      document.getElementById("workoutInput").disabled = disableWorkout;
-      document.getElementById("screenInput").disabled = disableScreen;
-      document.getElementById("wakeBtn").disabled = disableWake;
-      document.getElementById("studyBtn").disabled = disableStudy;
-      document.getElementById("workoutBtn").disabled = disableWorkout;
-      document.getElementById("screenBtn").disabled = disableScreen;
-      document.getElementById("microStudyBtn").disabled = closed || state.today.micro.studyStart;
-      document.getElementById("microFocusBtn").disabled = closed || state.today.micro.focusBlock;
-      document.getElementById("microStudyBtn").textContent = state.today.micro.studyStart ? "İşlendi" : "Başlangıcı İşle";
-      document.getElementById("microFocusBtn").textContent = state.today.micro.focusBlock ? "İşlendi" : "Bloku İşle";
-
-      renderRewards();
-      renderCloseout();
-    }
-
-    function renderCloseout() {
-      const closeTitle = document.getElementById("closeoutTitle");
-      const closeTag = document.getElementById("closeoutTag");
-      const closeHelper = document.getElementById("closeoutHelper");
-      const btn = document.getElementById("closeDayBtn");
-      const score = calculateDayScore(state.today);
-
-      closeTag.className = "status-tag";
-      if (state.today.closure.closed) {
-        closeTitle.textContent = "Gün kapandı: " + state.today.closure.result;
-        closeTag.textContent = state.today.closure.result;
-        closeTag.classList.add(state.today.closure.result === "SUCCESS" ? "perfect" : (state.today.closure.usedShield ? "partial" : "fail"));
-        closeHelper.textContent = state.today.closure.summary;
-        btn.disabled = true;
-        btn.textContent = "Kapanış Tamamlandı";
-        return;
-      }
-
-      if (score >= 5) {
-        closeTitle.textContent = "Kapanış için zemin hazır";
-        closeTag.textContent = "Avantajlı";
-        closeTag.classList.add("perfect");
-        closeHelper.textContent = "Şu anki puan eşiği geçmiş durumda. Son eksik kayıtlar kötü gelmezse gün yüksek olasılıkla SUCCESS kapanır.";
-      } else if (score >= 3) {
-        closeTitle.textContent = "Kapanış riskli ama açık";
-        closeTag.textContent = "Riskli";
-        closeTag.classList.add("partial");
-        closeHelper.textContent = "Puan henüz güvenli değil. Kalan kayıtlar sonucu yukarı da aşağı da çekebilir.";
-      } else {
-        closeTitle.textContent = "Kapanış şu an ağır";
-        closeTag.textContent = "Kırılgan";
-        closeTag.classList.add("fail");
-        closeHelper.textContent = "Gün zayıf puanda. Mikro hedef ya da kısmi kayıtlar bile tam çöküşü yumuşatabilir.";
-      }
-      btn.disabled = false;
-      btn.textContent = "Günü Kapat";
-    }
-
-    function renderHistory() {
-      const list = document.getElementById("historyList");
-      if (!state.history.length) {
-        list.innerHTML = "<div class='empty'>Henüz geçmiş gün yok. İlk kapanışı yaptığında bu bölüm dolmaya başlayacak.</div>";
-        return;
-      }
-
-      list.innerHTML = state.history.map((entry) => {
-        const tone = entry.result === "SUCCESS" ? "perfect" : (entry.usedShield ? "partial" : "fail");
-        const tags = [
-          tagText("Uyanış", entry.actions.wake),
-          tagText("Çalışma", entry.actions.study),
-          tagText("Antrenman", entry.actions.workout),
-          tagText("Ekran", entry.actions.screen),
-          (entry.xp >= 0 ? "+" : "") + entry.xp + " XP",
-          entry.score + "/8 puan"
-        ];
-        if (entry.usedShield) {
-          tags.push("Koruma harcandı");
-        }
-        return [
-          "<article class='history-item'>",
-          "  <div class='history-head'>",
-          "    <div>",
-          "      <div class='tiny'>", entry.date, "</div>",
-          "      <div class='history-date'>", formatDate(entry.date), "</div>",
-          "    </div>",
-          "    <div class='status-tag ", tone, "'>", entry.result, "</div>",
-          "  </div>",
-          "  <div class='history-summary'>", escapeHtml(entry.summary), "</div>",
-          "  <div class='history-tags'>", tags.map((tag) => "<span>" + escapeHtml(tag) + "</span>").join(""), "</div>",
-          "</article>"
-        ].join("");
-      }).join("");
-    }
-
-    function tagText(label, action) {
-      if (!action.logged) {
-        return label + ": kayıt yok";
-      }
-      if (action.tier === "perfect") {
-        return label + ": kusursuz";
-      }
-      if (action.tier === "partial") {
-        return label + ": kabul";
-      }
-      return label + ": başarısız";
-    }
-
-    function escapeHtml(text) {
-      return String(text)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;");
-    }
-
-    function renderSettings() {
-      document.getElementById("settingStudyTarget").value = state.settings.studyTargetMinutes;
-      document.getElementById("settingWakeTarget").value = state.settings.wakeTarget;
-      document.getElementById("settingScreenLimit").value = state.settings.screenLimitMinutes;
-      document.getElementById("settingDifficulty").value = state.settings.difficulty;
-      document.getElementById("settingBackgroundToggle").value = state.settings.backgroundEnabled ? "on" : "off";
-      document.getElementById("settingBackgroundOpacity").value = state.settings.backgroundOpacity;
-    }
-
-    function render() {
-      applyBackgroundSettings();
-      renderTabs();
-      renderOverview();
-      renderStats();
-      renderInputs();
-      renderActionStates();
-      renderHistory();
-      renderSettings();
-    }
-
-    function attachEvents() {
-      document.querySelectorAll("[data-tab]").forEach((button) => {
-        button.addEventListener("click", function () {
-          switchTab(button.dataset.tab);
-        });
-      });
-      document.getElementById("wakeBtn").addEventListener("click", logWake);
-      document.getElementById("studyBtn").addEventListener("click", logStudy);
-      document.getElementById("workoutBtn").addEventListener("click", logWorkout);
-      document.getElementById("screenBtn").addEventListener("click", logScreen);
-      document.getElementById("closeDayBtn").addEventListener("click", function () {
-        closeDay(false);
-        render();
-      });
-      document.getElementById("saveSettingsBtn").addEventListener("click", saveSettings);
-      document.getElementById("resetBtn").addEventListener("click", openResetModal);
-      document.getElementById("cancelResetBtn").addEventListener("click", closeResetModal);
-      document.getElementById("confirmResetBtn").addEventListener("click", resetAllData);
-      document.getElementById("microStudyBtn").addEventListener("click", function () {
-        logMicro("study");
-      });
-      document.getElementById("microFocusBtn").addEventListener("click", function () {
-        logMicro("focus");
-      });
-      document.getElementById("settingBackgroundOpacity").addEventListener("input", function (event) {
-        document.getElementById("backgroundOpacityText").textContent = "%" + event.target.value;
-        previewBackgroundSettings();
-      });
-      document.getElementById("settingBackgroundToggle").addEventListener("change", function () {
-        previewBackgroundSettings();
-      });
-      document.getElementById("resetModal").addEventListener("click", function (event) {
-        if (event.target.id === "resetModal") {
-          closeResetModal();
-        }
-      });
-    }
-
-    loadState();
-    attachEvents();
-    render();
-  </script>
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-pill neutral" id="dayStatusPill">
+      <div class="status-dot"></div>
+      <div>
+        <div class="status-text">Bugün</div>
+        <div class="status-val" id="dayStatusText">Değerlendirilmedi</div>
+      </div>
+    </div>
+    <div class="streak-pill">
+      <div class="streak-fire">🔥</div>
+      <div>
+        <div class="streak-count" id="streakCount">0</div>
+        <div class="streak-label">Seri</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAILY LOG -->
+  <div class="section-divider">Günlük Hareketler</div>
+  <div id="dailyLog" style="margin-bottom:20px;"></div>
+
+  <!-- ============ SECTIONS ============ -->
+  <div class="section-divider">Görevler</div>
+
+  <!-- 1. UYKU / UYANMA -->
+  <div class="section" id="sec-wake">
+    <div class="section-header" onclick="toggleSection('sec-wake')">
+      <div class="section-icon">⏰</div>
+      <div class="section-title">
+        <h3>Disiplin — Uyku & Uyanış</h3>
+        <p>Erken kalk, güne hâkim ol</p>
+      </div>
+      <div class="section-badge" id="badge-wake">Bekliyor</div>
+      <div class="section-chevron">▼</div>
+    </div>
+    <div class="section-body">
+      <div class="form-group">
+        <label>Kaçta uyandın?</label>
+        <input type="time" id="wakeInput" />
+      </div>
+      <div class="info-text" id="wakeInfo">Hedef: — | Erken uyanırsan XP kazanırsın, geç kalırsan ceza yiyersin.</div>
+      <button class="btn btn-primary" onclick="logWakeUp()" style="margin-top:12px;">⏰ Uyanışı Kaydet</button>
+    </div>
+  </div>
+
+  <!-- 2. ÇALIŞMA -->
+  <div class="section" id="sec-study">
+    <div class="section-header" onclick="toggleSection('sec-study')">
+      <div class="section-icon">📚</div>
+      <div class="section-title">
+        <h3>Üretkenlik — Çalışma</h3>
+        <p>Her dakika Zeka puanı kazandırır</p>
+      </div>
+      <div class="section-badge" id="badge-study">Bekliyor</div>
+      <div class="section-chevron">▼</div>
+    </div>
+    <div class="section-body">
+      <div class="form-group">
+        <label>Kaç dakika çalıştın?</label>
+        <input type="number" id="studyInput" placeholder="örn. 90" min="1" max="720" />
+      </div>
+      <div class="info-text" id="studyInfo">Minimum: — dk | Her 30 dk = 20 XP + Zeka +1</div>
+      <button class="btn btn-primary" onclick="logStudy()" style="margin-top:12px;">📚 Çalışmayı Kaydet</button>
+    </div>
+  </div>
+
+  <!-- 3. ANTRENMAN -->
+  <div class="section" id="sec-workout">
+    <div class="section-header" onclick="toggleSection('sec-workout')">
+      <div class="section-icon">💪</div>
+      <div class="section-title">
+        <h3>Fiziksel — Antrenman</h3>
+        <p>Yaptın mı yaptın, yapmadın mı ceza var</p>
+      </div>
+      <div class="section-badge" id="badge-workout">Bekliyor</div>
+      <div class="section-chevron">▼</div>
+    </div>
+    <div class="section-body">
+      <p class="info-text" style="margin-bottom:14px;">Bugün antrenman yaptın mı? Dürüst ol — sistem seni izliyor.</p>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="logWorkout(true)">💪 Evet, yaptım</button>
+        <button class="btn btn-danger" onclick="logWorkout(false)">✗ Yapmadım</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. EKRAN SÜRESİ -->
+  <div class="section" id="sec-screen">
+    <div class="section-header" onclick="toggleSection('sec-screen')">
+      <div class="section-icon">📱</div>
+      <div class="section-title">
+        <h3>Kontrol — Ekran Süresi</h3>
+        <p>Limiti aşarsan Odak düşer</p>
+      </div>
+      <div class="section-badge" id="badge-screen">Bekliyor</div>
+      <div class="section-chevron">▼</div>
+    </div>
+    <div class="section-body">
+      <div class="form-group">
+        <label>Bugün kaç dakika ekrana baktın?</label>
+        <input type="number" id="screenInput" placeholder="örn. 120" min="0" max="1440" />
+      </div>
+      <div class="info-text" id="screenInfo">Limit: — dk | Aşarsan XP cezası ve Odak düşer.</div>
+      <button class="btn btn-primary" onclick="logScreen()" style="margin-top:12px;">📱 Ekran Süresini Kaydet</button>
+    </div>
+  </div>
+
+  <!-- ============ GÜN SONU ============ -->
+  <div class="eod-btn-wrap">
+    <button class="btn" onclick="endDay()" id="endDayBtn" style="border-color:var(--warn);color:var(--warn);font-size:13px;">
+      ⚑ Günü Bitir & Değerlendir
+    </button>
+  </div>
+
+  <!-- ============ AYARLAR ============ -->
+  <div class="section-divider" style="margin-top:32px;">Ayarlar</div>
+
+  <div class="settings-panel">
+    <h3>Hedeflerini Ayarla</h3>
+    <div class="form-group">
+      <label>Hedef Uyanma Saati</label>
+      <input type="time" id="settingWakeTarget" value="06:30" />
+    </div>
+    <div class="form-group">
+      <label>Minimum Günlük Çalışma (dakika)</label>
+      <input type="number" id="settingStudyMin" value="120" min="10" />
+    </div>
+    <div class="form-group">
+      <label>Maksimum Ekran Süresi (dakika)</label>
+      <input type="number" id="settingScreenMax" value="120" min="10" />
+    </div>
+    <div class="btn-row" style="margin-top:4px;">
+      <button class="btn btn-primary" onclick="saveSettings()">Kaydet</button>
+      <button class="btn btn-danger" onclick="resetData()">Sıfırla</button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+/* ----------------------------------------
+   DATA MODEL
+   ---------------------------------------- */
+const DEFAULT_STATE = {
+  level: 1,
+  xp: 0,
+  stats: { intelligence: 10, strength: 10, focus: 10 },
+  streak: 0,
+  lastDayDate: null,
+  settings: {
+    wakeTarget: '06:30',
+    studyMinMinutes: 120,
+    screenMaxMinutes: 120,
+  },
+  today: {
+    date: null,
+    wakeLogged: false,
+    wakeTime: null,
+    wakeSuccess: null,
+    studyLogged: false,
+    studyMinutes: 0,
+    studySuccess: null,
+    workoutLogged: false,
+    workoutDone: null,
+    screenLogged: false,
+    screenMinutes: 0,
+    screenSuccess: null,
+    dayEnded: false,
+    daySuccess: null,
+    log: [],  // {icon, desc, xp}
+  },
+  workoutSkipDays: 0,
+};
+
+/* ----------------------------------------
+   LEVEL THRESHOLDS
+   ---------------------------------------- */
+function xpForLevel(lvl) {
+  return Math.floor(100 * Math.pow(1.35, lvl - 1));
+}
+
+const RANK_TITLES = [
+  'Çaylak', 'Acemi', 'Aday', 'Kahraman',
+  'Savaşçı', 'Uzman', 'Usta', 'Efsane', 'Titan', 'Tanrı'
+];
+
+function rankTitle(lvl) {
+  return RANK_TITLES[Math.min(lvl - 1, RANK_TITLES.length - 1)];
+}
+
+/* ----------------------------------------
+   STATE MANAGEMENT
+   ---------------------------------------- */
+let state;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('disciplineApp_v2');
+    state = raw ? JSON.parse(raw) : deepClone(DEFAULT_STATE);
+  } catch(e) {
+    state = deepClone(DEFAULT_STATE);
+  }
+  // Ensure nested defaults
+  state.stats = state.stats || {...DEFAULT_STATE.stats};
+  state.settings = state.settings || {...DEFAULT_STATE.settings};
+  state.today = state.today || {...DEFAULT_STATE.today};
+  if (!state.today.log) state.today.log = [];
+}
+
+function saveState() {
+  localStorage.setItem('disciplineApp_v2', JSON.stringify(state));
+}
+
+function deepClone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+/* ----------------------------------------
+   DATE UTILITIES
+   ---------------------------------------- */
+function todayStr() {
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+
+function todayDisplay() {
+  return new Date().toLocaleDateString('tr-TR', {
+    weekday: 'long', day: 'numeric', month: 'long'
+  });
+}
+
+function checkNewDay() {
+  const today = todayStr();
+  if (state.today.date !== today) {
+    // A new day — process yesterday if it wasn't ended
+    if (state.today.date && !state.today.dayEnded) {
+      applyMissedDayPenalties(false);
+    }
+    // Reset today
+    state.today = deepClone(DEFAULT_STATE.today);
+    state.today.date = today;
+    saveState();
+  }
+}
+
+function applyMissedDayPenalties(updateUI = true) {
+  // Missed workout
+  if (!state.today.workoutLogged || !state.today.workoutDone) {
+    state.workoutSkipDays = (state.workoutSkipDays || 0) + 1;
+    if (state.workoutSkipDays >= 2) {
+      state.stats.strength = Math.max(1, state.stats.strength - 2);
+      addLog('minus', 'Antrenman kaçırıldı — Güç düştü', '-2 Güç');
+    }
+  } else {
+    state.workoutSkipDays = 0;
+  }
+  // Streak reset if day wasn't a success
+  if (!state.today.daySuccess) {
+    state.streak = 0;
+  }
+}
+
+/* ----------------------------------------
+   XP MANAGEMENT
+   ---------------------------------------- */
+function gainXP(amount, desc) {
+  state.xp += amount;
+  addLog('plus', desc, `+${amount} XP`);
+  checkLevelUp();
+}
+
+function loseXP(amount, desc) {
+  state.xp = Math.max(0, state.xp - amount);
+  addLog('minus', desc, `-${amount} XP`);
+}
+
+function checkLevelUp() {
+  const needed = xpForLevel(state.level);
+  if (state.xp >= needed) {
+    state.xp -= needed;
+    state.level += 1;
+    toast(`🏆 SEVİYE ATLADI! Seviye ${state.level}`, 'positive');
+  }
+}
+
+/* ----------------------------------------
+   LOG
+   ---------------------------------------- */
+function addLog(type, desc, xpText) {
+  state.today.log.push({ type, desc, xpText, time: new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) });
+}
+
+/* ----------------------------------------
+   WAKE UP LOGGING
+   ---------------------------------------- */
+function logWakeUp() {
+  if (state.today.wakeLogged) { toast('Uyanış zaten kaydedildi.', 'warn'); return; }
+
+  const input = document.getElementById('wakeInput').value;
+  if (!input) { toast('Lütfen bir saat gir.', 'warn'); return; }
+
+  const [wH, wM] = input.split(':').map(Number);
+  const [tH, tM] = state.settings.wakeTarget.split(':').map(Number);
+  const wakeMinutes = wH * 60 + wM;
+  const targetMinutes = tH * 60 + tM;
+
+  state.today.wakeLogged = true;
+  state.today.wakeTime = input;
+
+  if (wakeMinutes <= targetMinutes) {
+    // Success
+    const bonus = Math.max(0, targetMinutes - wakeMinutes);
+    const xp = 30 + Math.floor(bonus / 5) * 5;
+    gainXP(xp, `Hedefe zamanında/erken uyandı (${input})`);
+    state.today.wakeSuccess = true;
+    toast(`✓ Erken kalktın! +${xp} XP`, 'positive');
+    setBadge('wake', 'done', `${input} ✓`);
+  } else {
+    // Penalty
+    const late = wakeMinutes - targetMinutes;
+    const xpLoss = Math.min(50, Math.floor(late / 10) * 10 + 10);
+    loseXP(xpLoss, `Geç uyandı (${input}) — ${late} dk geç`);
+    state.today.wakeSuccess = false;
+    toast(`✗ Geç uyandın. -${xpLoss} XP`, 'negative');
+    setBadge('wake', 'failed', `${input} ✗`);
+  }
+
+  saveState();
+  renderAll();
+}
+
+/* ----------------------------------------
+   STUDY LOGGING
+   ---------------------------------------- */
+function logStudy() {
+  if (state.today.studyLogged) { toast('Çalışma zaten kaydedildi.', 'warn'); return; }
+
+  const mins = parseInt(document.getElementById('studyInput').value, 10);
+  if (!mins || mins < 1) { toast('Geçerli bir dakika gir.', 'warn'); return; }
+
+  const minTarget = state.settings.studyMinMinutes;
+  const xp = Math.floor(mins / 30) * 20;
+  const intGain = Math.floor(mins / 30);
+
+  state.today.studyLogged = true;
+  state.today.studyMinutes = mins;
+
+  gainXP(xp, `${mins} dk çalışma`);
+  state.stats.intelligence = Math.min(99, state.stats.intelligence + intGain);
+
+  if (mins >= minTarget) {
+    state.today.studySuccess = true;
+    toast(`📚 Harika! +${xp} XP, +${intGain} Zeka`, 'positive');
+    setBadge('study', 'done', `${mins} dk ✓`);
+  } else {
+    state.today.studySuccess = false;
+    const shortfall = minTarget - mins;
+    const penalty = Math.floor(shortfall / 30) * 10;
+    if (penalty > 0) loseXP(penalty, `Yeterince çalışmadı (${shortfall} dk eksik)`);
+    toast(`📚 +${xp} XP ama hedef tutmadı. -${penalty > 0 ? penalty : 0} XP`, 'warn');
+    setBadge('study', 'failed', `${mins} dk ✗`);
+  }
+
+  saveState();
+  renderAll();
+}
+
+/* ----------------------------------------
+   WORKOUT LOGGING
+   ---------------------------------------- */
+function logWorkout(done) {
+  if (state.today.workoutLogged) { toast('Antrenman zaten kaydedildi.', 'warn'); return; }
+
+  state.today.workoutLogged = true;
+  state.today.workoutDone = done;
+
+  if (done) {
+    gainXP(50, 'Antrenman tamamlandı');
+    state.stats.strength = Math.min(99, state.stats.strength + 2);
+    state.workoutSkipDays = 0;
+    toast('💪 Antrenman tamam! +50 XP, +2 Güç', 'positive');
+    setBadge('workout', 'done', 'Yapıldı ✓');
+  } else {
+    state.workoutSkipDays = (state.workoutSkipDays || 0) + 1;
+    if (state.workoutSkipDays >= 2) {
+      state.stats.strength = Math.max(1, state.stats.strength - 2);
+      loseXP(20, `Antrenman yapılmadı (${state.workoutSkipDays} gün) — Güç düştü`);
+      toast(`✗ Antrenman yapılmadı. -20 XP, -2 Güç (${state.workoutSkipDays} gün üst üste)`, 'negative');
+    } else {
+      loseXP(10, 'Antrenman yapılmadı');
+      toast('✗ Antrenman yapılmadı. -10 XP', 'negative');
+    }
+    setBadge('workout', 'failed', 'Yapılmadı ✗');
+  }
+
+  saveState();
+  renderAll();
+}
+
+/* ----------------------------------------
+   SCREEN TIME LOGGING
+   ---------------------------------------- */
+function logScreen() {
+  if (state.today.screenLogged) { toast('Ekran süresi zaten kaydedildi.', 'warn'); return; }
+
+  const mins = parseInt(document.getElementById('screenInput').value, 10);
+  if (mins === undefined || isNaN(mins) || mins < 0) { toast('Geçerli bir değer gir.', 'warn'); return; }
+
+  const limit = state.settings.screenMaxMinutes;
+  state.today.screenLogged = true;
+  state.today.screenMinutes = mins;
+
+  if (mins <= limit) {
+    state.today.screenSuccess = true;
+    gainXP(15, `Ekran süresini kontrol altında tuttu (${mins}/${limit} dk)`);
+    toast(`✓ Ekran süresi kontrollü! +15 XP`, 'positive');
+    setBadge('screen', 'done', `${mins} dk ✓`);
+  } else {
+    const over = mins - limit;
+    const xpLoss = Math.min(60, Math.floor(over / 15) * 10 + 10);
+    const focLoss = Math.ceil(over / 30);
+    loseXP(xpLoss, `Ekran süresini aştı (+${over} dk fazla)`);
+    state.stats.focus = Math.max(1, state.stats.focus - focLoss);
+    state.today.screenSuccess = false;
+    addLog('minus', `Ekran aşımı — Odak -${focLoss}`, `-${focLoss} Odak`);
+    toast(`✗ Ekran süresi aşıldı! -${xpLoss} XP, -${focLoss} Odak`, 'negative');
+    setBadge('screen', 'failed', `${mins} dk ✗`);
+  }
+
+  saveState();
+  renderAll();
+}
+
+/* ----------------------------------------
+   END DAY
+   ---------------------------------------- */
+function endDay() {
+  if (state.today.dayEnded) { toast('Gün zaten bitirildi.', 'warn'); return; }
+
+  // Determine success
+  const wakeOk = state.today.wakeSuccess === true;
+  const studyOk = state.today.studySuccess === true;
+  const daySuccess = wakeOk && studyOk;
+
+  state.today.dayEnded = true;
+  state.today.daySuccess = daySuccess;
+  state.lastDayDate = todayStr();
+
+  if (daySuccess) {
+    state.streak += 1;
+    const bonusXP = 20 + state.streak * 5;
+    gainXP(bonusXP, `Başarılı gün bonusu (Seri: ${state.streak})`);
+    toast(`🏆 Başarılı Gün! +${bonusXP} XP, Seri: ${state.streak}`, 'positive');
+  } else {
+    const reasons = [];
+    if (!wakeOk) reasons.push('zamanında uyanmadın');
+    if (!studyOk) reasons.push('yeterince çalışmadın');
+    state.streak = 0;
+    loseXP(15, `Başarısız gün — Seri sıfırlandı`);
+    toast(`✗ Başarısız Gün. Seri sıfırlandı. (${reasons.join(', ')})`, 'negative');
+  }
+
+  // Apply workout penalty if missed
+  if (!state.today.workoutLogged) {
+    state.workoutSkipDays = (state.workoutSkipDays || 0) + 1;
+    if (state.workoutSkipDays >= 2) {
+      state.stats.strength = Math.max(1, state.stats.strength - 2);
+      addLog('minus', `Antrenman kaçırıldı (${state.workoutSkipDays} gün) — Güç düştü`, '-2 Güç');
+    }
+  }
+
+  document.getElementById('endDayBtn').disabled = true;
+  document.getElementById('endDayBtn').textContent = '✓ Gün Tamamlandı';
+
+  saveState();
+  renderAll();
+}
+
+/* ----------------------------------------
+   SETTINGS
+   ---------------------------------------- */
+function saveSettings() {
+  const wakeTarget = document.getElementById('settingWakeTarget').value;
+  const studyMin = parseInt(document.getElementById('settingStudyMin').value, 10);
+  const screenMax = parseInt(document.getElementById('settingScreenMax').value, 10);
+
+  if (!wakeTarget || !studyMin || !screenMax) { toast('Tüm alanları doldur.', 'warn'); return; }
+
+  state.settings.wakeTarget = wakeTarget;
+  state.settings.studyMinMinutes = studyMin;
+  state.settings.screenMaxMinutes = screenMax;
+
+  saveState();
+  renderAll();
+  toast('✓ Ayarlar kaydedildi.', 'positive');
+}
+
+function resetData() {
+  if (!confirm('Tüm veriler sıfırlanacak. Emin misin?')) return;
+  localStorage.removeItem('disciplineApp_v2');
+  loadState();
+  checkNewDay();
+  renderAll();
+  toast('Tüm veriler sıfırlandı.', 'warn');
+}
+
+/* ----------------------------------------
+   SECTION TOGGLE
+   ---------------------------------------- */
+function toggleSection(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+/* ----------------------------------------
+   UI HELPERS
+   ---------------------------------------- */
+function setBadge(key, cls, text) {
+  const el = document.getElementById(`badge-${key}`);
+  if (!el) return;
+  el.className = 'section-badge ' + (cls || '');
+  el.textContent = text;
+}
+
+/* ----------------------------------------
+   RENDER
+   ---------------------------------------- */
+function renderAll() {
+  // Date
+  document.getElementById('dateBadge').textContent = todayDisplay();
+
+  // Level & XP
+  document.getElementById('levelNum').textContent = state.level;
+  document.getElementById('rankTitle').textContent = rankTitle(state.level);
+  const needed = xpForLevel(state.level);
+  const pct = Math.min(100, (state.xp / needed) * 100);
+  document.getElementById('xpText').textContent = `${state.xp} / ${needed}`;
+  document.getElementById('xpBar').style.width = pct + '%';
+
+  // Stats
+  setStatVal('statInt', state.stats.intelligence);
+  setStatVal('statStr', state.stats.strength);
+  setStatVal('statFoc', state.stats.focus);
+
+  // Streak
+  document.getElementById('streakCount').textContent = state.streak;
+
+  // Day status
+  const pill = document.getElementById('dayStatusPill');
+  const txt = document.getElementById('dayStatusText');
+  pill.className = 'status-pill neutral';
+  if (state.today.dayEnded) {
+    if (state.today.daySuccess) {
+      pill.className = 'status-pill success';
+      txt.textContent = 'Başarılı ✓';
+    } else {
+      pill.className = 'status-pill fail';
+      txt.textContent = 'Başarısız ✗';
+    }
+  } else {
+    txt.textContent = 'Değerlendirilmedi';
+  }
+
+  // Settings inputs
+  document.getElementById('settingWakeTarget').value = state.settings.wakeTarget;
+  document.getElementById('settingStudyMin').value = state.settings.studyMinMinutes;
+  document.getElementById('settingScreenMax').value = state.settings.screenMaxMinutes;
+
+  // Info texts
+  document.getElementById('wakeInfo').textContent =
+    `Hedef: ${state.settings.wakeTarget} | Erken uyanırsan XP kazanırsın, geç kalırsan ceza yiyersin.`;
+  document.getElementById('studyInfo').textContent =
+    `Minimum: ${state.settings.studyMinMinutes} dk | Her 30 dk = 20 XP + Zeka +1`;
+  document.getElementById('screenInfo').textContent =
+    `Limit: ${state.settings.screenMaxMinutes} dk | Aşarsan XP cezası ve Odak düşer.`;
+
+  // Badges from today state
+  if (state.today.wakeLogged) setBadge('wake', state.today.wakeSuccess ? 'done' : 'failed', state.today.wakeTime + (state.today.wakeSuccess ? ' ✓' : ' ✗'));
+  if (state.today.studyLogged) setBadge('study', state.today.studySuccess ? 'done' : 'failed', state.today.studyMinutes + ' dk ' + (state.today.studySuccess ? '✓' : '✗'));
+  if (state.today.workoutLogged) setBadge('workout', state.today.workoutDone ? 'done' : 'failed', state.today.workoutDone ? 'Yapıldı ✓' : 'Yapılmadı ✗');
+  if (state.today.screenLogged) setBadge('screen', state.today.screenSuccess ? 'done' : 'failed', state.today.screenMinutes + ' dk ' + (state.today.screenSuccess ? '✓' : '✗'));
+
+  // End day button
+  const endBtn = document.getElementById('endDayBtn');
+  if (state.today.dayEnded) {
+    endBtn.disabled = true;
+    endBtn.textContent = '✓ Gün Tamamlandı';
+  }
+
+  // Daily log
+  renderLog();
+}
+
+function setStatVal(id, val) {
+  document.getElementById(id).textContent = val;
+}
+
+function renderLog() {
+  const container = document.getElementById('dailyLog');
+  if (!state.today.log || state.today.log.length === 0) {
+    container.innerHTML = `<div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);padding:12px 0;text-align:center;letter-spacing:0.08em;">Henüz hiçbir hareket kaydedilmedi.</div>`;
+    return;
+  }
+  container.innerHTML = state.today.log.map(entry => `
+    <div class="log-entry">
+      <div class="log-icon ${entry.type}">${entry.type === 'plus' ? '↑' : '↓'}</div>
+      <div class="log-desc">${entry.desc}</div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted)">${entry.time}</div>
+      <div class="log-xp ${entry.type}">${entry.xpText}</div>
+    </div>
+  `).join('');
+}
+
+/* ----------------------------------------
+   TOAST
+   ---------------------------------------- */
+let toastTimer = null;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    el.className = type;
+    setTimeout(() => { el.className = ''; }, 350);
+  }, 3000);
+}
+
+/* ----------------------------------------
+   INIT
+   ---------------------------------------- */
+loadState();
+checkNewDay();
+renderAll();
+</script>
 </body>
 </html>
