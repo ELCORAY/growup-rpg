@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DİSİPLİN — Kendi Savaşını Kazan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   VARIABLES & RESET
+   ============================================ */
+:root {
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --surface2: #181818;
+  --border: #222222;
+  --text: #e8e8e8;
+  --text-muted: #555555;
+  --text-dim: #888888;
+  --accent: #c8f542;       /* sharp lime — discipline green */
+  --accent-dim: #8aaa20;
+  --danger: #ff4040;
+  --danger-dim: #7a1a1a;
+  --warn: #f0a500;
+  --blue: #4a9eff;
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --radius: 6px;
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-display);
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-left h1 {
+  font-size: clamp(22px, 5vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+.header-left p {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-top: 4px;
+}
+
+.date-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  text-align: right;
+}
+
+/* ============================================
+   PLAYER CARD
+   ============================================ */
+.player-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.player-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--accent);
+}
+
+.level-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.level-num {
+  font-size: clamp(48px, 10vw, 72px);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  letter-spacing: -0.04em;
+}
+
+.level-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.xp-section {
+  margin-bottom: 20px;
+}
+
+.xp-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.xp-label-row span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.xp-label-row strong {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+}
+
+.xp-bar-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.xp-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.xp-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 20px; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.stat-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  text-align: center;
+}
+
+.stat-icon {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1;
+}
+
+.stat-name {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 4px;
+}
+
+/* ============================================
+   STATUS BAR
+   ============================================ */
+.status-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.status-pill {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+}
+
+.status-pill.success {
+  border-color: var(--accent-dim);
+  background: rgba(200, 245, 66, 0.05);
+}
+
+.status-pill.fail {
+  border-color: var(--danger-dim);
+  background: rgba(255, 64, 64, 0.05);
+}
+
+.status-pill.neutral {
+  border-color: var(--border);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.status-pill.success .status-dot { background: var(--accent); }
+.status-pill.fail .status-dot { background: var(--danger); animation: pulse-red 1.5s infinite; }
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.status-text {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+}
+
+.status-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.streak-pill {
+  flex-shrink: 0;
+  width: auto;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+}
+
+.streak-fire { font-size: 20px; }
+.streak-count {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--warn);
+  line-height: 1;
+}
+
+.streak-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ============================================
+   SECTIONS
+   ============================================ */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition);
+}
+
+.section-header:hover { background: var(--surface2); }
+
+.section-icon {
+  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+
+.section-title {
+  flex: 1;
+}
+
+.section-title h3 {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.section-title p {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.section-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.section-badge.done {
+  background: rgba(200, 245, 66, 0.1);
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+
+.section-badge.failed {
+  background: rgba(255, 64, 64, 0.1);
+  border-color: var(--danger-dim);
+  color: var(--danger);
+}
+
+.section-chevron {
+  color: var(--text-muted);
+  transition: transform var(--transition);
+  font-size: 12px;
+}
+
+.section.open .section-chevron { transform: rotate(180deg); }
+
+.section-body {
+  display: none;
+  padding: 0 20px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.section.open .section-body { display: block; padding-top: 16px; }
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.form-group input[type="time"],
+.form-group input[type="number"],
+.form-group input[type="text"] {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color var(--transition);
+  -webkit-appearance: none;
+}
+
+.form-group input:focus {
+  border-color: var(--accent-dim);
+}
+
+.form-group input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
+
+.info-text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  line-height: 1.6;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  width: 100%;
+  letter-spacing: 0.01em;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.btn:hover::before { opacity: 0.04; }
+.btn:active { transform: scale(0.98); }
+
+.btn-primary {
+  background: var(--accent);
+  color: #0a0a0a;
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.btn-primary:hover { background: #d4ff55; border-color: #d4ff55; }
+
+.btn-danger {
+  background: rgba(255, 64, 64, 0.1);
+  color: var(--danger);
+  border-color: var(--danger-dim);
+}
+
+.btn-danger:hover { background: rgba(255, 64, 64, 0.18); }
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-row .btn { flex: 1; }
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================
+   TOAST NOTIFICATION
+   ============================================ */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  z-index: 1000;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s;
+  opacity: 0;
+  white-space: nowrap;
+  max-width: 90vw;
+  text-align: center;
+}
+
+#toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+#toast.positive { border-color: var(--accent-dim); color: var(--accent); }
+#toast.negative { border-color: var(--danger-dim); color: var(--danger); }
+#toast.warn { border-color: #7a5a00; color: var(--warn); }
+
+/* ============================================
+   SETTINGS PANEL
+   ============================================ */
+.settings-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 12px;
+}
+
+.settings-panel h3 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+/* ============================================
+   DAILY LOG
+   ============================================ */
+.log-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.log-entry:last-child { border-bottom: none; }
+
+.log-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.log-icon.plus { background: rgba(200, 245, 66, 0.1); }
+.log-icon.minus { background: rgba(255, 64, 64, 0.1); }
+
+.log-desc { flex: 1; }
+
+.log-xp {
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.log-xp.plus { color: var(--accent); }
+.log-xp.minus { color: var(--danger); }
+
+/* ============================================
+   DIVIDER
+   ============================================ */
+.section-divider {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  margin: 24px 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ============================================
+   END OF DAY
+   ============================================ */
+.eod-btn-wrap {
+  margin-top: 20px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 480px) {
+  .status-bar { flex-wrap: wrap; }
+  .streak-pill { width: 100%; justify-content: center; }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat-box { padding: 10px 8px; }
+  .stat-value { font-size: 20px; }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.player-card, .status-bar, .section, .settings-panel {
+  animation: fadeIn 0.4s ease backwards;
+}
+
+.player-card { animation-delay: 0.05s; }
+.status-bar { animation-delay: 0.1s; }
+.section:nth-child(1) { animation-delay: 0.15s; }
+.section:nth-child(2) { animation-delay: 0.2s; }
+.section:nth-child(3) { animation-delay: 0.25s; }
+.section:nth-child(4) { animation-delay: 0.3s; }
+
+/* Stat flash animation */
+@keyframes statFlash {
+  0%, 100% { color: var(--text); }
+  50% { color: var(--accent); }
+}
+
+.stat-value.flash { animation: statFlash 0.6s ease; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <h1>DİSİPLİN</h1>
+      <p>Kendi savaşını kazan</p>
+    </div>
+    <div class="date-badge" id="dateBadge">—</div>
+  </div>
+
+  <!-- PLAYER CARD -->
+  <div class="player-card">
+    <div class="level-row">
+      <div class="level-num" id="levelNum">1</div>
+      <div>
+        <div class="level-label">Seviye</div>
+        <div id="rankTitle" style="font-size:12px;color:var(--text-dim);margin-top:2px;">Çaylak</div>
+      </div>
+    </div>
+
+    <div class="xp-section">
+      <div class="xp-label-row">
+        <span>Deneyim (XP)</span>
+        <strong id="xpText">0 / 100</strong>
+      </div>
+      <div class="xp-bar-track">
+        <div class="xp-bar-fill" id="xpBar"></div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-icon">🧠</div>
+        <div class="stat-value" id="statInt">10</div>
+        <div class="stat-name">Zeka</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-icon">💪</div>
+        <div class="stat-value" id="statStr">10</div>
+        <div class="stat-name">Güç</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-value" id="statFoc">10</div>
+        <div class="stat-name">Odak</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-pill neutral" id="dayStatusPill">
+      <div class="status-dot"></div>
+      <div>
+        <div class="status-text">Bugün</div>
+        <div class="status-val" id="dayStatusText">Değerlendirilmedi</div>
+      </div>
+    </div>
+    <div class="streak-pill">
+      <div class="streak-fire">🔥</div>
+      <div>
+        <div class="streak-count" id="streakCount">0</div>
+        <div class="streak-label">Seri</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAILY LOG -->
+  <div class="section-divider">Günlük Hareketler</div>
+  <div id="dailyLog" style="margin-bottom:20px;"></div>
+
+  <!-- ============ SECTIONS ============ -->
+  <div class="section-divider">Görevler</div>
+
+  <!-- 1. UYKU / UYANMA -->
+  <div class="section" id="sec-wake">
+    <div class="section-header" onclick="toggleSection('sec-wake')">
+      <div class="section-icon">⏰</div>
+      <div class="section-title">
+        <h3>Disiplin — Uyku & Uyanış</h3>
+        <p>Erken kalk, güne hâkim ol</p>
+      </div>
+      <div class="section-badge" id="badge-wake">Bekliyor</div>
+      <div class="section-chevron">▼</div>
+    </div>
+    <div class="section-body">
+      <div class="form-group">
+        <label>Kaçta uyandın?</label>
+        <input type="time" id="wakeInput" />
+      </div>
+      <div class="info-text" id="wakeInfo">Hedef: — | Erken uyanırsan XP kazanırsın, geç kalırsan ceza yiyersin.</div>
+      <button class="btn btn-primary" onclick="logWakeUp()" style="margin-top:12px;">⏰ Uyanışı Kaydet</button>
+    </div>
+  </div>
+
+  <!-- 2. ÇALIŞMA -->
+  <div class="section" id="sec-study">
+    <div class="section-header" onclick="toggleSection('sec-study')">
+      <div class="section-icon">📚</div>
+      <div class="section-title">
+        <h3>Üretkenlik — Çalışma</h3>
+        <p>Her dakika Zeka puanı kazandırır</p>
+      </div>
+      <div class="section-badge" id="badge-study">Bekliyor</div>
+      <div class="section-chevron">▼</div>
+    </div>
+    <div class="section-body">
+      <div class="form-group">
+        <label>Kaç dakika çalıştın?</label>
+        <input type="number" id="studyInput" placeholder="örn. 90" min="1" max="720" />
+      </div>
+      <div class="info-text" id="studyInfo">Minimum: — dk | Her 30 dk = 20 XP + Zeka +1</div>
+      <button class="btn btn-primary" onclick="logStudy()" style="margin-top:12px;">📚 Çalışmayı Kaydet</button>
+    </div>
+  </div>
+
+  <!-- 3. ANTRENMAN -->
+  <div class="section" id="sec-workout">
+    <div class="section-header" onclick="toggleSection('sec-workout')">
+      <div class="section-icon">💪</div>
+      <div class="section-title">
+        <h3>Fiziksel — Antrenman</h3>
+        <p>Yaptın mı yaptın, yapmadın mı ceza var</p>
+      </div>
+      <div class="section-badge" id="badge-workout">Bekliyor</div>
+      <div class="section-chevron">▼</div>
+    </div>
+    <div class="section-body">
+      <p class="info-text" style="margin-bottom:14px;">Bugün antrenman yaptın mı? Dürüst ol — sistem seni izliyor.</p>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="logWorkout(true)">💪 Evet, yaptım</button>
+        <button class="btn btn-danger" onclick="logWorkout(false)">✗ Yapmadım</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. EKRAN SÜRESİ -->
+  <div class="section" id="sec-screen">
+    <div class="section-header" onclick="toggleSection('sec-screen')">
+      <div class="section-icon">📱</div>
+      <div class="section-title">
+        <h3>Kontrol — Ekran Süresi</h3>
+        <p>Limiti aşarsan Odak düşer</p>
+      </div>
+      <div class="section-badge" id="badge-screen">Bekliyor</div>
+      <div class="section-chevron">▼</div>
+    </div>
+    <div class="section-body">
+      <div class="form-group">
+        <label>Bugün kaç dakika ekrana baktın?</label>
+        <input type="number" id="screenInput" placeholder="örn. 120" min="0" max="1440" />
+      </div>
+      <div class="info-text" id="screenInfo">Limit: — dk | Aşarsan XP cezası ve Odak düşer.</div>
+      <button class="btn btn-primary" onclick="logScreen()" style="margin-top:12px;">📱 Ekran Süresini Kaydet</button>
+    </div>
+  </div>
+
+  <!-- ============ GÜN SONU ============ -->
+  <div class="eod-btn-wrap">
+    <button class="btn" onclick="endDay()" id="endDayBtn" style="border-color:var(--warn);color:var(--warn);font-size:13px;">
+      ⚑ Günü Bitir & Değerlendir
+    </button>
+  </div>
+
+  <!-- ============ AYARLAR ============ -->
+  <div class="section-divider" style="margin-top:32px;">Ayarlar</div>
+
+  <div class="settings-panel">
+    <h3>Hedeflerini Ayarla</h3>
+    <div class="form-group">
+      <label>Hedef Uyanma Saati</label>
+      <input type="time" id="settingWakeTarget" value="06:30" />
+    </div>
+    <div class="form-group">
+      <label>Minimum Günlük Çalışma (dakika)</label>
+      <input type="number" id="settingStudyMin" value="120" min="10" />
+    </div>
+    <div class="form-group">
+      <label>Maksimum Ekran Süresi (dakika)</label>
+      <input type="number" id="settingScreenMax" value="120" min="10" />
+    </div>
+    <div class="btn-row" style="margin-top:4px;">
+      <button class="btn btn-primary" onclick="saveSettings()">Kaydet</button>
+      <button class="btn btn-danger" onclick="resetData()">Sıfırla</button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+/* ----------------------------------------
+   DATA MODEL
+   ---------------------------------------- */
+const DEFAULT_STATE = {
+  level: 1,
+  xp: 0,
+  stats: { intelligence: 10, strength: 10, focus: 10 },
+  streak: 0,
+  lastDayDate: null,
+  settings: {
+    wakeTarget: '06:30',
+    studyMinMinutes: 120,
+    screenMaxMinutes: 120,
+  },
+  today: {
+    date: null,
+    wakeLogged: false,
+    wakeTime: null,
+    wakeSuccess: null,
+    studyLogged: false,
+    studyMinutes: 0,
+    studySuccess: null,
+    workoutLogged: false,
+    workoutDone: null,
+    screenLogged: false,
+    screenMinutes: 0,
+    screenSuccess: null,
+    dayEnded: false,
+    daySuccess: null,
+    log: [],  // {icon, desc, xp}
+  },
+  workoutSkipDays: 0,
+};
+
+/* ----------------------------------------
+   LEVEL THRESHOLDS
+   ---------------------------------------- */
+function xpForLevel(lvl) {
+  return Math.floor(100 * Math.pow(1.35, lvl - 1));
+}
+
+const RANK_TITLES = [
+  'Çaylak', 'Acemi', 'Aday', 'Kahraman',
+  'Savaşçı', 'Uzman', 'Usta', 'Efsane', 'Titan', 'Tanrı'
+];
+
+function rankTitle(lvl) {
+  return RANK_TITLES[Math.min(lvl - 1, RANK_TITLES.length - 1)];
+}
+
+/* ----------------------------------------
+   STATE MANAGEMENT
+   ---------------------------------------- */
+let state;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('disciplineApp_v2');
+    state = raw ? JSON.parse(raw) : deepClone(DEFAULT_STATE);
+  } catch(e) {
+    state = deepClone(DEFAULT_STATE);
+  }
+  // Ensure nested defaults
+  state.stats = state.stats || {...DEFAULT_STATE.stats};
+  state.settings = state.settings || {...DEFAULT_STATE.settings};
+  state.today = state.today || {...DEFAULT_STATE.today};
+  if (!state.today.log) state.today.log = [];
+}
+
+function saveState() {
+  localStorage.setItem('disciplineApp_v2', JSON.stringify(state));
+}
+
+function deepClone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+/* ----------------------------------------
+   DATE UTILITIES
+   ---------------------------------------- */
+function todayStr() {
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+
+function todayDisplay() {
+  return new Date().toLocaleDateString('tr-TR', {
+    weekday: 'long', day: 'numeric', month: 'long'
+  });
+}
+
+function checkNewDay() {
+  const today = todayStr();
+  if (state.today.date !== today) {
+    // A new day — process yesterday if it wasn't ended
+    if (state.today.date && !state.today.dayEnded) {
+      applyMissedDayPenalties(false);
+    }
+    // Reset today
+    state.today = deepClone(DEFAULT_STATE.today);
+    state.today.date = today;
+    saveState();
+  }
+}
+
+function applyMissedDayPenalties(updateUI = true) {
+  // Missed workout
+  if (!state.today.workoutLogged || !state.today.workoutDone) {
+    state.workoutSkipDays = (state.workoutSkipDays || 0) + 1;
+    if (state.workoutSkipDays >= 2) {
+      state.stats.strength = Math.max(1, state.stats.strength - 2);
+      addLog('minus', 'Antrenman kaçırıldı — Güç düştü', '-2 Güç');
+    }
+  } else {
+    state.workoutSkipDays = 0;
+  }
+  // Streak reset if day wasn't a success
+  if (!state.today.daySuccess) {
+    state.streak = 0;
+  }
+}
+
+/* ----------------------------------------
+   XP MANAGEMENT
+   ---------------------------------------- */
+function gainXP(amount, desc) {
+  state.xp += amount;
+  addLog('plus', desc, `+${amount} XP`);
+  checkLevelUp();
+}
+
+function loseXP(amount, desc) {
+  state.xp = Math.max(0, state.xp - amount);
+  addLog('minus', desc, `-${amount} XP`);
+}
+
+function checkLevelUp() {
+  const needed = xpForLevel(state.level);
+  if (state.xp >= needed) {
+    state.xp -= needed;
+    state.level += 1;
+    toast(`🏆 SEVİYE ATLADI! Seviye ${state.level}`, 'positive');
+  }
+}
+
+/* ----------------------------------------
+   LOG
+   ---------------------------------------- */
+function addLog(type, desc, xpText) {
+  state.today.log.push({ type, desc, xpText, time: new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) });
+}
+
+/* ----------------------------------------
+   WAKE UP LOGGING
+   ---------------------------------------- */
+function logWakeUp() {
+  if (state.today.wakeLogged) { toast('Uyanış zaten kaydedildi.', 'warn'); return; }
+
+  const input = document.getElementById('wakeInput').value;
+  if (!input) { toast('Lütfen bir saat gir.', 'warn'); return; }
+
+  const [wH, wM] = input.split(':').map(Number);
+  const [tH, tM] = state.settings.wakeTarget.split(':').map(Number);
+  const wakeMinutes = wH * 60 + wM;
+  const targetMinutes = tH * 60 + tM;
+
+  state.today.wakeLogged = true;
+  state.today.wakeTime = input;
+
+  if (wakeMinutes <= targetMinutes) {
+    // Success
+    const bonus = Math.max(0, targetMinutes - wakeMinutes);
+    const xp = 30 + Math.floor(bonus / 5) * 5;
+    gainXP(xp, `Hedefe zamanında/erken uyandı (${input})`);
+    state.today.wakeSuccess = true;
+    toast(`✓ Erken kalktın! +${xp} XP`, 'positive');
+    setBadge('wake', 'done', `${input} ✓`);
+  } else {
+    // Penalty
+    const late = wakeMinutes - targetMinutes;
+    const xpLoss = Math.min(50, Math.floor(late / 10) * 10 + 10);
+    loseXP(xpLoss, `Geç uyandı (${input}) — ${late} dk geç`);
+    state.today.wakeSuccess = false;
+    toast(`✗ Geç uyandın. -${xpLoss} XP`, 'negative');
+    setBadge('wake', 'failed', `${input} ✗`);
+  }
+
+  saveState();
+  renderAll();
+}
+
+/* ----------------------------------------
+   STUDY LOGGING
+   ---------------------------------------- */
+function logStudy() {
+  if (state.today.studyLogged) { toast('Çalışma zaten kaydedildi.', 'warn'); return; }
+
+  const mins = parseInt(document.getElementById('studyInput').value, 10);
+  if (!mins || mins < 1) { toast('Geçerli bir dakika gir.', 'warn'); return; }
+
+  const minTarget = state.settings.studyMinMinutes;
+  const xp = Math.floor(mins / 30) * 20;
+  const intGain = Math.floor(mins / 30);
+
+  state.today.studyLogged = true;
+  state.today.studyMinutes = mins;
+
+  gainXP(xp, `${mins} dk çalışma`);
+  state.stats.intelligence = Math.min(99, state.stats.intelligence + intGain);
+
+  if (mins >= minTarget) {
+    state.today.studySuccess = true;
+    toast(`📚 Harika! +${xp} XP, +${intGain} Zeka`, 'positive');
+    setBadge('study', 'done', `${mins} dk ✓`);
+  } else {
+    state.today.studySuccess = false;
+    const shortfall = minTarget - mins;
+    const penalty = Math.floor(shortfall / 30) * 10;
+    if (penalty > 0) loseXP(penalty, `Yeterince çalışmadı (${shortfall} dk eksik)`);
+    toast(`📚 +${xp} XP ama hedef tutmadı. -${penalty > 0 ? penalty : 0} XP`, 'warn');
+    setBadge('study', 'failed', `${mins} dk ✗`);
+  }
+
+  saveState();
+  renderAll();
+}
+
+/* ----------------------------------------
+   WORKOUT LOGGING
+   ---------------------------------------- */
+function logWorkout(done) {
+  if (state.today.workoutLogged) { toast('Antrenman zaten kaydedildi.', 'warn'); return; }
+
+  state.today.workoutLogged = true;
+  state.today.workoutDone = done;
+
+  if (done) {
+    gainXP(50, 'Antrenman tamamlandı');
+    state.stats.strength = Math.min(99, state.stats.strength + 2);
+    state.workoutSkipDays = 0;
+    toast('💪 Antrenman tamam! +50 XP, +2 Güç', 'positive');
+    setBadge('workout', 'done', 'Yapıldı ✓');
+  } else {
+    state.workoutSkipDays = (state.workoutSkipDays || 0) + 1;
+    if (state.workoutSkipDays >= 2) {
+      state.stats.strength = Math.max(1, state.stats.strength - 2);
+      loseXP(20, `Antrenman yapılmadı (${state.workoutSkipDays} gün) — Güç düştü`);
+      toast(`✗ Antrenman yapılmadı. -20 XP, -2 Güç (${state.workoutSkipDays} gün üst üste)`, 'negative');
+    } else {
+      loseXP(10, 'Antrenman yapılmadı');
+      toast('✗ Antrenman yapılmadı. -10 XP', 'negative');
+    }
+    setBadge('workout', 'failed', 'Yapılmadı ✗');
+  }
+
+  saveState();
+  renderAll();
+}
+
+/* ----------------------------------------
+   SCREEN TIME LOGGING
+   ---------------------------------------- */
+function logScreen() {
+  if (state.today.screenLogged) { toast('Ekran süresi zaten kaydedildi.', 'warn'); return; }
+
+  const mins = parseInt(document.getElementById('screenInput').value, 10);
+  if (mins === undefined || isNaN(mins) || mins < 0) { toast('Geçerli bir değer gir.', 'warn'); return; }
+
+  const limit = state.settings.screenMaxMinutes;
+  state.today.screenLogged = true;
+  state.today.screenMinutes = mins;
+
+  if (mins <= limit) {
+    state.today.screenSuccess = true;
+    gainXP(15, `Ekran süresini kontrol altında tuttu (${mins}/${limit} dk)`);
+    toast(`✓ Ekran süresi kontrollü! +15 XP`, 'positive');
+    setBadge('screen', 'done', `${mins} dk ✓`);
+  } else {
+    const over = mins - limit;
+    const xpLoss = Math.min(60, Math.floor(over / 15) * 10 + 10);
+    const focLoss = Math.ceil(over / 30);
+    loseXP(xpLoss, `Ekran süresini aştı (+${over} dk fazla)`);
+    state.stats.focus = Math.max(1, state.stats.focus - focLoss);
+    state.today.screenSuccess = false;
+    addLog('minus', `Ekran aşımı — Odak -${focLoss}`, `-${focLoss} Odak`);
+    toast(`✗ Ekran süresi aşıldı! -${xpLoss} XP, -${focLoss} Odak`, 'negative');
+    setBadge('screen', 'failed', `${mins} dk ✗`);
+  }
+
+  saveState();
+  renderAll();
+}
+
+/* ----------------------------------------
+   END DAY
+   ---------------------------------------- */
+function endDay() {
+  if (state.today.dayEnded) { toast('Gün zaten bitirildi.', 'warn'); return; }
+
+  // Determine success
+  const wakeOk = state.today.wakeSuccess === true;
+  const studyOk = state.today.studySuccess === true;
+  const daySuccess = wakeOk && studyOk;
+
+  state.today.dayEnded = true;
+  state.today.daySuccess = daySuccess;
+  state.lastDayDate = todayStr();
+
+  if (daySuccess) {
+    state.streak += 1;
+    const bonusXP = 20 + state.streak * 5;
+    gainXP(bonusXP, `Başarılı gün bonusu (Seri: ${state.streak})`);
+    toast(`🏆 Başarılı Gün! +${bonusXP} XP, Seri: ${state.streak}`, 'positive');
+  } else {
+    const reasons = [];
+    if (!wakeOk) reasons.push('zamanında uyanmadın');
+    if (!studyOk) reasons.push('yeterince çalışmadın');
+    state.streak = 0;
+    loseXP(15, `Başarısız gün — Seri sıfırlandı`);
+    toast(`✗ Başarısız Gün. Seri sıfırlandı. (${reasons.join(', ')})`, 'negative');
+  }
+
+  // Apply workout penalty if missed
+  if (!state.today.workoutLogged) {
+    state.workoutSkipDays = (state.workoutSkipDays || 0) + 1;
+    if (state.workoutSkipDays >= 2) {
+      state.stats.strength = Math.max(1, state.stats.strength - 2);
+      addLog('minus', `Antrenman kaçırıldı (${state.workoutSkipDays} gün) — Güç düştü`, '-2 Güç');
+    }
+  }
+
+  document.getElementById('endDayBtn').disabled = true;
+  document.getElementById('endDayBtn').textContent = '✓ Gün Tamamlandı';
+
+  saveState();
+  renderAll();
+}
+
+/* ----------------------------------------
+   SETTINGS
+   ---------------------------------------- */
+function saveSettings() {
+  const wakeTarget = document.getElementById('settingWakeTarget').value;
+  const studyMin = parseInt(document.getElementById('settingStudyMin').value, 10);
+  const screenMax = parseInt(document.getElementById('settingScreenMax').value, 10);
+
+  if (!wakeTarget || !studyMin || !screenMax) { toast('Tüm alanları doldur.', 'warn'); return; }
+
+  state.settings.wakeTarget = wakeTarget;
+  state.settings.studyMinMinutes = studyMin;
+  state.settings.screenMaxMinutes = screenMax;
+
+  saveState();
+  renderAll();
+  toast('✓ Ayarlar kaydedildi.', 'positive');
+}
+
+function resetData() {
+  if (!confirm('Tüm veriler sıfırlanacak. Emin misin?')) return;
+  localStorage.removeItem('disciplineApp_v2');
+  loadState();
+  checkNewDay();
+  renderAll();
+  toast('Tüm veriler sıfırlandı.', 'warn');
+}
+
+/* ----------------------------------------
+   SECTION TOGGLE
+   ---------------------------------------- */
+function toggleSection(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+/* ----------------------------------------
+   UI HELPERS
+   ---------------------------------------- */
+function setBadge(key, cls, text) {
+  const el = document.getElementById(`badge-${key}`);
+  if (!el) return;
+  el.className = 'section-badge ' + (cls || '');
+  el.textContent = text;
+}
+
+/* ----------------------------------------
+   RENDER
+   ---------------------------------------- */
+function renderAll() {
+  // Date
+  document.getElementById('dateBadge').textContent = todayDisplay();
+
+  // Level & XP
+  document.getElementById('levelNum').textContent = state.level;
+  document.getElementById('rankTitle').textContent = rankTitle(state.level);
+  const needed = xpForLevel(state.level);
+  const pct = Math.min(100, (state.xp / needed) * 100);
+  document.getElementById('xpText').textContent = `${state.xp} / ${needed}`;
+  document.getElementById('xpBar').style.width = pct + '%';
+
+  // Stats
+  setStatVal('statInt', state.stats.intelligence);
+  setStatVal('statStr', state.stats.strength);
+  setStatVal('statFoc', state.stats.focus);
+
+  // Streak
+  document.getElementById('streakCount').textContent = state.streak;
+
+  // Day status
+  const pill = document.getElementById('dayStatusPill');
+  const txt = document.getElementById('dayStatusText');
+  pill.className = 'status-pill neutral';
+  if (state.today.dayEnded) {
+    if (state.today.daySuccess) {
+      pill.className = 'status-pill success';
+      txt.textContent = 'Başarılı ✓';
+    } else {
+      pill.className = 'status-pill fail';
+      txt.textContent = 'Başarısız ✗';
+    }
+  } else {
+    txt.textContent = 'Değerlendirilmedi';
+  }
+
+  // Settings inputs
+  document.getElementById('settingWakeTarget').value = state.settings.wakeTarget;
+  document.getElementById('settingStudyMin').value = state.settings.studyMinMinutes;
+  document.getElementById('settingScreenMax').value = state.settings.screenMaxMinutes;
+
+  // Info texts
+  document.getElementById('wakeInfo').textContent =
+    `Hedef: ${state.settings.wakeTarget} | Erken uyanırsan XP kazanırsın, geç kalırsan ceza yiyersin.`;
+  document.getElementById('studyInfo').textContent =
+    `Minimum: ${state.settings.studyMinMinutes} dk | Her 30 dk = 20 XP + Zeka +1`;
+  document.getElementById('screenInfo').textContent =
+    `Limit: ${state.settings.screenMaxMinutes} dk | Aşarsan XP cezası ve Odak düşer.`;
+
+  // Badges from today state
+  if (state.today.wakeLogged) setBadge('wake', state.today.wakeSuccess ? 'done' : 'failed', state.today.wakeTime + (state.today.wakeSuccess ? ' ✓' : ' ✗'));
+  if (state.today.studyLogged) setBadge('study', state.today.studySuccess ? 'done' : 'failed', state.today.studyMinutes + ' dk ' + (state.today.studySuccess ? '✓' : '✗'));
+  if (state.today.workoutLogged) setBadge('workout', state.today.workoutDone ? 'done' : 'failed', state.today.workoutDone ? 'Yapıldı ✓' : 'Yapılmadı ✗');
+  if (state.today.screenLogged) setBadge('screen', state.today.screenSuccess ? 'done' : 'failed', state.today.screenMinutes + ' dk ' + (state.today.screenSuccess ? '✓' : '✗'));
+
+  // End day button
+  const endBtn = document.getElementById('endDayBtn');
+  if (state.today.dayEnded) {
+    endBtn.disabled = true;
+    endBtn.textContent = '✓ Gün Tamamlandı';
+  }
+
+  // Daily log
+  renderLog();
+}
+
+function setStatVal(id, val) {
+  document.getElementById(id).textContent = val;
+}
+
+function renderLog() {
+  const container = document.getElementById('dailyLog');
+  if (!state.today.log || state.today.log.length === 0) {
+    container.innerHTML = `<div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);padding:12px 0;text-align:center;letter-spacing:0.08em;">Henüz hiçbir hareket kaydedilmedi.</div>`;
+    return;
+  }
+  container.innerHTML = state.today.log.map(entry => `
+    <div class="log-entry">
+      <div class="log-icon ${entry.type}">${entry.type === 'plus' ? '↑' : '↓'}</div>
+      <div class="log-desc">${entry.desc}</div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted)">${entry.time}</div>
+      <div class="log-xp ${entry.type}">${entry.xpText}</div>
+    </div>
+  `).join('');
+}
+
+/* ----------------------------------------
+   TOAST
+   ---------------------------------------- */
+let toastTimer = null;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    el.className = type;
+    setTimeout(() => { el.className = ''; }, 350);
+  }, 3000);
+}
+
+/* ----------------------------------------
+   INIT
+   ---------------------------------------- */
+loadState();
+checkNewDay();
+renderAll();
+</script>
+</body>
+</html>
