@@ -907,6 +907,32 @@
       line-height: 1.7;
     }
 
+    .tabbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 12px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-soft);
+      font-weight: 700;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(180deg, rgba(228, 214, 178, 0.96), rgba(186, 160, 110, 0.92));
+      color: #18140d;
+      border-color: transparent;
+    }
+
+    .dashboard-grid.single-mode {
+      grid-template-columns: 1fr;
+    }
+
     @media (max-width: 980px) {
       .hero-grid,
       .dashboard-grid {
@@ -958,6 +984,15 @@
       .date-card {
         width: 100%;
       }
+
+      .tabbar {
+        gap: 8px;
+      }
+
+      .tab-btn {
+        flex: 1 1 calc(33.333% - 6px);
+        text-align: center;
+      }
     }
   </style>
 </head>
@@ -976,7 +1011,13 @@
       </aside>
     </header>
 
-    <section class="hero-grid">
+    <nav class="tabbar" aria-label="Uygulama sekmeleri">
+      <button class="tab-btn active" type="button" data-tab="home">Anasayfa</button>
+      <button class="tab-btn" type="button" data-tab="archive">ArÅŸiv</button>
+      <button class="tab-btn" type="button" data-tab="settings">Ayarlar</button>
+    </nav>
+
+    <section class="hero-grid" id="homeHeroSection">
       <div class="hero-card panel">
         <div class="hero-top">
           <div class="level-block">
@@ -1053,7 +1094,7 @@
       </aside>
     </section>
 
-    <section class="dashboard-grid">
+    <section class="dashboard-grid" id="homeMainSection">
       <div>
         <section class="stats-panel panel">
           <div class="section-head">
@@ -1226,8 +1267,8 @@
       </section>
     </section>
 
-    <section class="dashboard-grid">
-      <section class="history-panel panel">
+    <section class="dashboard-grid" id="secondaryGrid">
+      <section class="history-panel panel" id="archiveSection">
         <div class="section-head">
           <div>
             <div class="eyebrow">Arşiv</div>
@@ -1238,7 +1279,7 @@
         <div class="history-list" id="historyList"></div>
       </section>
 
-      <section class="settings-panel panel">
+      <section class="settings-panel panel" id="settingsSection">
         <div class="section-head">
           <div>
             <div class="eyebrow">Kontrol</div>
@@ -1322,6 +1363,7 @@
 
   <script>
     const STORAGE_KEY = "disciplineRPG_v4";
+    let currentTab = "home";
     const DAY_NAMES = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
     const MONTH_NAMES = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 
@@ -2008,6 +2050,32 @@
       toast("Ayarlar güncellendi.", "good");
     }
 
+    function switchTab(tab) {
+      const allowedTabs = ["home", "archive", "settings"];
+      currentTab = allowedTabs.includes(tab) ? tab : "home";
+      renderTabs();
+    }
+
+    function renderTabs() {
+      const isHome = currentTab === "home";
+      const isArchive = currentTab === "archive";
+      const isSettings = currentTab === "settings";
+
+      document.getElementById("homeHeroSection").hidden = !isHome;
+      document.getElementById("homeMainSection").hidden = !isHome;
+
+      const secondaryGrid = document.getElementById("secondaryGrid");
+      secondaryGrid.hidden = !(isArchive || isSettings);
+      secondaryGrid.classList.toggle("single-mode", isArchive || isSettings);
+
+      document.getElementById("archiveSection").hidden = !isArchive;
+      document.getElementById("settingsSection").hidden = !isSettings;
+
+      document.querySelectorAll("[data-tab]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.tab === currentTab);
+      });
+    }
+
     function logWake() {
       const input = document.getElementById("wakeInput");
       if (!input.value) {
@@ -2513,6 +2581,7 @@
 
     function render() {
       applyBackgroundSettings();
+      renderTabs();
       renderOverview();
       renderStats();
       renderInputs();
@@ -2522,6 +2591,11 @@
     }
 
     function attachEvents() {
+      document.querySelectorAll("[data-tab]").forEach((button) => {
+        button.addEventListener("click", function () {
+          switchTab(button.dataset.tab);
+        });
+      });
       document.getElementById("wakeBtn").addEventListener("click", logWake);
       document.getElementById("studyBtn").addEventListener("click", logStudy);
       document.getElementById("workoutBtn").addEventListener("click", logWorkout);
