@@ -7,1275 +7,1379 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* ============================================
-   VARIABLES & RESET
-   ============================================ */
+/* ================================================
+   CSS VARIABLES
+   ================================================ */
 :root {
-  --bg: #0a0a0a;
-  --surface: #111111;
-  --surface2: #181818;
-  --border: #222222;
-  --text: #e8e8e8;
-  --text-muted: #555555;
-  --text-dim: #888888;
-  --accent: #c8f542;       /* sharp lime — discipline green */
-  --accent-dim: #8aaa20;
-  --danger: #ff4040;
-  --danger-dim: #7a1a1a;
-  --warn: #f0a500;
-  --blue: #4a9eff;
-  --font-display: 'Syne', sans-serif;
-  --font-mono: 'Space Mono', monospace;
-  --radius: 6px;
-  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --bg:#0a0a0a; --surface:#111111; --surface2:#181818; --border:#222222;
+  --text:#e8e8e8; --text-muted:#4a4a4a; --text-dim:#777777;
+  --accent:#c8f542; --accent-dim:#8aaa20; --accent-glow:rgba(200,245,66,0.15);
+  --danger:#ff4040; --danger-dim:#7a1a1a; --danger-glow:rgba(255,64,64,0.12);
+  --warn:#f0a500; --warn-dim:#7a5000;
+  --blue:#4a9eff; --gold:#ffd700;
+  --soft:#f0a500; --soft-dim:#7a5000;
+  --font-d:'Syne',sans-serif; --font-m:'Space Mono',monospace;
+  --r:6px; --t:0.2s cubic-bezier(0.4,0,0.2,1);
 }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-d);min-height:100vh;line-height:1.5;overflow-x:hidden}
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ================================================
+   BACKGROUND LAYERS
+   ================================================ */
+#bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;transition:opacity .6s ease}
+#bg-layer.style-stoic{
+  background:
+    radial-gradient(ellipse 110% 65% at 50% 0%,rgba(175,155,110,.055) 0%,transparent 65%),
+    radial-gradient(ellipse 70% 90% at 92% 100%,rgba(140,120,90,.04) 0%,transparent 60%),
+    radial-gradient(ellipse 45% 50% at 8% 80%,rgba(155,135,95,.03) 0%,transparent 50%),
+    linear-gradient(175deg,#0d0b09 0%,#080808 100%)}
+#bg-layer.style-stoic::before{content:'';position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E")}
+#bg-layer.style-marble{
+  background:
+    radial-gradient(ellipse 130% 80% at 15% 20%,rgba(255,255,255,.022) 0%,transparent 55%),
+    radial-gradient(ellipse 80% 130% at 88% 80%,rgba(255,255,255,.016) 0%,transparent 50%),
+    linear-gradient(155deg,#0d0d0d 0%,#080808 45%,#0f0e0e 100%)}
+#bg-layer.style-marble::before{content:'';position:absolute;inset:0;
+  background-image:
+    repeating-linear-gradient(70deg,transparent,transparent 150px,rgba(255,255,255,.006) 150px,rgba(255,255,255,.006) 151px),
+    repeating-linear-gradient(20deg,transparent,transparent 230px,rgba(255,255,255,.004) 230px,rgba(255,255,255,.004) 231px)}
+#bg-layer.style-minimal{background:#0a0a0a}
+#noise{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.02;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")}
 
-html { scroll-behavior: smooth; }
+/* ================================================
+   LEVEL-UP OVERLAY
+   ================================================ */
+#lvlOverlay{
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,0);
+  align-items:center;justify-content:center;flex-direction:column;gap:12px;
+  pointer-events:none}
+#lvlOverlay.show{display:flex;animation:lvlFade 2.2s ease forwards}
+@keyframes lvlFade{
+  0%{background:rgba(0,0,0,0)}
+  15%{background:rgba(0,0,0,.7)}
+  70%{background:rgba(0,0,0,.7)}
+  100%{background:rgba(0,0,0,0)}}
+#lvlOverlay .lvl-num{
+  font-size:clamp(72px,20vw,120px);font-weight:800;color:var(--accent);
+  letter-spacing:-.04em;line-height:1;
+  animation:lvlPop 2.2s ease forwards}
+@keyframes lvlPop{
+  0%{opacity:0;transform:scale(.4)}
+  20%{opacity:1;transform:scale(1.08)}
+  35%{transform:scale(1)}
+  75%{opacity:1;transform:scale(1)}
+  100%{opacity:0;transform:scale(1.3)}}
+#lvlOverlay .lvl-label{
+  font-family:var(--font-m);font-size:13px;text-transform:uppercase;
+  letter-spacing:.2em;color:var(--text-dim);
+  animation:lvlPop 2.2s ease forwards}
+#lvlOverlay .lvl-rank{
+  font-size:22px;font-weight:700;color:var(--text);margin-top:4px;
+  animation:lvlPop 2.2s ease forwards;animation-delay:.1s}
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-display);
-  min-height: 100vh;
-  line-height: 1.5;
-  overflow-x: hidden;
-}
+/* ================================================
+   CRITICAL BONUS FLASH
+   ================================================ */
+#critFlash{
+  display:none;position:fixed;top:80px;right:16px;z-index:500;
+  background:var(--surface);border:1px solid var(--accent-dim);
+  border-radius:var(--r);padding:10px 16px;
+  font-family:var(--font-m);font-size:12px;color:var(--accent);
+  animation:critAnim .4s ease}
+#critFlash.show{display:block}
+@keyframes critAnim{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 
-/* noise texture overlay */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-  opacity: 0.025;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ============================================
+/* ================================================
    LAYOUT
-   ============================================ */
-.app {
-  position: relative;
-  z-index: 1;
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 24px 16px 80px;
-}
+   ================================================ */
+.app{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:20px 16px 80px}
 
-/* ============================================
+/* ================================================
+   NAV TABS
+   ================================================ */
+.nav-tabs{display:flex;gap:3px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:4px;margin-bottom:22px}
+.nav-tab{flex:1;padding:8px 4px;background:none;border:none;border-radius:4px;color:var(--text-muted);font-family:var(--font-m);font-size:10px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;transition:all var(--t);text-align:center;white-space:nowrap}
+.nav-tab:hover{color:var(--text-dim);background:var(--surface2)}
+.nav-tab.active{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fadeUp .28s ease}
+
+/* ================================================
    HEADER
-   ============================================ */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 32px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border);
-}
+   ================================================ */
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.header-left h1{font-size:clamp(17px,4.5vw,26px);font-weight:800;letter-spacing:-.02em;color:var(--accent);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.header-left p{font-family:var(--font-m);font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.12em;margin-top:4px}
+.date-badge{font-family:var(--font-m);font-size:11px;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);padding:6px 10px;border-radius:var(--r);text-align:right;white-space:nowrap;flex-shrink:0}
 
-.header-left h1 {
-  font-size: clamp(22px, 5vw, 30px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--accent);
-}
+/* ================================================
+   DIFF BADGE
+   ================================================ */
+.diff-badge{display:inline-block;font-family:var(--font-m);font-size:9px;padding:3px 7px;border-radius:3px;letter-spacing:.08em;border:1px solid}
+.diff-badge.easy{color:var(--blue);border-color:#1a3a6a;background:rgba(74,158,255,.08)}
+.diff-badge.normal{color:var(--accent);border-color:var(--accent-dim);background:rgba(200,245,66,.07)}
+.diff-badge.hard{color:var(--danger);border-color:var(--danger-dim);background:rgba(255,64,64,.08)}
 
-.header-left p {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  margin-top: 4px;
-}
-
-.date-badge {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-muted);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 6px 10px;
-  border-radius: var(--radius);
-  text-align: right;
-}
-
-/* ============================================
+/* ================================================
    PLAYER CARD
-   ============================================ */
-.player-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 24px;
-  margin-bottom: 20px;
-  position: relative;
-  overflow: hidden;
-}
+   ================================================ */
+.player-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;margin-bottom:16px;position:relative;overflow:hidden}
+.player-card::after{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--accent)}
+.level-row{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.level-num{font-size:clamp(44px,9vw,68px);font-weight:800;line-height:1;color:var(--accent);letter-spacing:-.04em;transition:color .3s}
+.level-meta{flex:1}
+.level-label{font-family:var(--font-m);font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em}
+.rank-title{font-size:14px;font-weight:700;color:var(--text);margin-top:2px;letter-spacing:-.01em}
+.rank-subtitle{font-family:var(--font-m);font-size:10px;color:var(--text-dim);margin-top:2px}
 
-.player-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 3px;
-  height: 100%;
-  background: var(--accent);
-}
+/* Shields */
+.shield-row{display:flex;align-items:center;gap:6px;margin-top:6px}
+.shield-icon{font-size:14px;opacity:.3;transition:opacity .3s}
+.shield-icon.active{opacity:1;filter:drop-shadow(0 0 4px rgba(74,158,255,.6))}
+.shield-label{font-family:var(--font-m);font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em}
 
-.level-row {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 16px;
-}
+/* XP Bar */
+.xp-section{margin-bottom:18px}
+.xp-label-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.xp-label-row span{font-family:var(--font-m);font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em}
+.xp-label-row strong{font-family:var(--font-m);font-size:12px;color:var(--text)}
+.xp-bar-track{height:7px;background:var(--border);border-radius:4px;overflow:hidden;position:relative}
+.xp-bar-fill{height:100%;background:var(--accent);border-radius:4px;width:0%;transition:width .9s cubic-bezier(0.4,0,0.2,1);position:relative}
+.xp-bar-fill::after{content:'';position:absolute;top:0;right:0;width:24px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35));animation:shimmer 2s infinite}
+@keyframes shimmer{0%,100%{opacity:0}50%{opacity:1}}
+.xp-bar-fill.critical{animation:xpCrit .5s ease}
+@keyframes xpCrit{0%{filter:brightness(1)}50%{filter:brightness(2)}100%{filter:brightness(1)}}
 
-.level-num {
-  font-size: clamp(48px, 10vw, 72px);
-  font-weight: 800;
-  line-height: 1;
-  color: var(--accent);
-  letter-spacing: -0.04em;
-}
+/* Stats Grid */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;transition:border-color .3s}
+.stat-box.rising{border-color:var(--accent-dim);animation:statRise .6s ease}
+.stat-box.falling{border-color:var(--danger-dim);animation:statFall .6s ease}
+@keyframes statRise{0%,100%{background:var(--surface2)}50%{background:rgba(200,245,66,.08)}}
+@keyframes statFall{0%,100%{background:var(--surface2)}50%{background:rgba(255,64,64,.08)}}
+.stat-icon{font-size:17px;margin-bottom:5px}
+.stat-value{font-size:22px;font-weight:800;letter-spacing:-.02em;color:var(--text);line-height:1}
+.stat-name{font-family:var(--font-m);font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-top:4px}
+.stat-sub{font-family:var(--font-m);font-size:8px;color:var(--text-muted);margin-top:2px}
 
-.level-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.xp-section {
-  margin-bottom: 20px;
-}
-
-.xp-label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.xp-label-row span {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.xp-label-row strong {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text);
-}
-
-.xp-bar-track {
-  height: 6px;
-  background: var(--border);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.xp-bar-fill {
-  height: 100%;
-  background: var(--accent);
-  border-radius: 3px;
-  width: 0%;
-  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-.xp-bar-fill::after {
-  content: '';
-  position: absolute;
-  top: 0; right: 0;
-  width: 20px; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
-  animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-  0%, 100% { opacity: 0; }
-  50% { opacity: 1; }
-}
-
-/* Stats */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-.stat-box {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px;
-  text-align: center;
-}
-
-.stat-icon {
-  font-size: 18px;
-  margin-bottom: 6px;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--text);
-  line-height: 1;
-}
-
-.stat-name {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-top: 4px;
-}
-
-/* ============================================
+/* ================================================
    STATUS BAR
-   ============================================ */
-.status-bar {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
+   ================================================ */
+.status-bar{display:flex;gap:8px;margin-bottom:18px}
+.status-pill{flex:1;padding:11px 12px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:8px;font-family:var(--font-m)}
+.status-pill.success{border-color:var(--accent-dim);background:var(--accent-glow)}
+.status-pill.partial{border-color:var(--warn-dim);background:rgba(240,165,0,.06)}
+.status-pill.fail{border-color:var(--danger-dim);background:var(--danger-glow)}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted);flex-shrink:0}
+.status-pill.success .status-dot{background:var(--accent)}
+.status-pill.partial .status-dot{background:var(--warn)}
+.status-pill.fail .status-dot{background:var(--danger);animation:pulseRed 1.5s infinite}
+@keyframes pulseRed{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.status-text{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;line-height:1.3}
+.status-val{font-size:12px;font-weight:700;color:var(--text)}
+.streak-pill{flex-shrink:0;padding:11px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);display:flex;align-items:center;gap:7px;font-family:var(--font-m)}
+.streak-fire{font-size:18px}
+.streak-count{font-size:20px;font-weight:700;color:var(--warn);line-height:1}
+.streak-label{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em}
 
-.status-pill {
-  flex: 1;
-  padding: 12px 14px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-}
+/* ================================================
+   ZONE INDICATORS (3-tier)
+   ================================================ */
+.zone-bar{display:flex;gap:4px;margin-bottom:12px}
+.zone-seg{flex:1;height:4px;border-radius:2px;background:var(--border);transition:background .4s}
+.zone-seg.perfect{background:var(--accent)}
+.zone-seg.partial{background:var(--warn)}
+.zone-seg.fail{background:var(--danger)}
+.zone-labels{display:flex;justify-content:space-between;font-family:var(--font-m);font-size:9px;color:var(--text-muted);margin-bottom:12px;letter-spacing:.06em;text-transform:uppercase}
+.zone-labels span.active-zone{font-weight:700}
+.zone-labels span.active-zone.perfect{color:var(--accent)}
+.zone-labels span.active-zone.partial{color:var(--warn)}
+.zone-labels span.active-zone.fail{color:var(--danger)}
 
-.status-pill.success {
-  border-color: var(--accent-dim);
-  background: rgba(200, 245, 66, 0.05);
-}
-
-.status-pill.fail {
-  border-color: var(--danger-dim);
-  background: rgba(255, 64, 64, 0.05);
-}
-
-.status-pill.neutral {
-  border-color: var(--border);
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  flex-shrink: 0;
-}
-
-.status-pill.success .status-dot { background: var(--accent); }
-.status-pill.fail .status-dot { background: var(--danger); animation: pulse-red 1.5s infinite; }
-
-@keyframes pulse-red {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
-}
-
-.status-text {
-  font-size: 11px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  line-height: 1.3;
-}
-
-.status-val {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.streak-pill {
-  flex-shrink: 0;
-  width: auto;
-  padding: 12px 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-}
-
-.streak-fire { font-size: 20px; }
-.streak-count {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--warn);
-  line-height: 1;
-}
-
-.streak-label {
-  font-size: 9px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* ============================================
+/* ================================================
    SECTIONS
-   ============================================ */
-.section {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 12px;
-  overflow: hidden;
-}
+   ================================================ */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.section-header{display:flex;align-items:center;gap:10px;padding:15px 18px;cursor:pointer;user-select:none;transition:background var(--t)}
+.section-header:hover{background:var(--surface2)}
+.section-icon{font-size:17px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);flex-shrink:0}
+.section-title{flex:1}
+.section-title h3{font-size:14px;font-weight:700;letter-spacing:-.01em}
+.section-title p{font-family:var(--font-m);font-size:9px;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:.08em}
+.section-badge{font-family:var(--font-m);font-size:10px;padding:3px 7px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);white-space:nowrap}
+.section-badge.done{background:rgba(200,245,66,.1);border-color:var(--accent-dim);color:var(--accent)}
+.section-badge.partial{background:rgba(240,165,0,.1);border-color:var(--warn-dim);color:var(--warn)}
+.section-badge.failed{background:rgba(255,64,64,.1);border-color:var(--danger-dim);color:var(--danger)}
+.section-chevron{color:var(--text-muted);transition:transform var(--t);font-size:11px;margin-left:4px}
+.section.open .section-chevron{transform:rotate(180deg)}
+.section-body{display:none;padding:0 18px 18px;border-top:1px solid var(--border)}
+.section.open .section-body{display:block;padding-top:14px}
 
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  cursor: pointer;
-  user-select: none;
-  transition: background var(--transition);
-}
+/* ================================================
+   MICRO-GOAL PROMPT
+   ================================================ */
+.micro-prompt{background:rgba(200,245,66,.05);border:1px solid rgba(200,245,66,.15);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-family:var(--font-m);font-size:10px;color:var(--text-dim);line-height:1.7}
+.micro-prompt strong{color:var(--accent);font-weight:700}
 
-.section-header:hover { background: var(--surface2); }
-
-.section-icon {
-  font-size: 18px;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  flex-shrink: 0;
-}
-
-.section-title {
-  flex: 1;
-}
-
-.section-title h3 {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.section-title p {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-muted);
-  margin-top: 2px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.section-badge {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 3px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-}
-
-.section-badge.done {
-  background: rgba(200, 245, 66, 0.1);
-  border-color: var(--accent-dim);
-  color: var(--accent);
-}
-
-.section-badge.failed {
-  background: rgba(255, 64, 64, 0.1);
-  border-color: var(--danger-dim);
-  color: var(--danger);
-}
-
-.section-chevron {
-  color: var(--text-muted);
-  transition: transform var(--transition);
-  font-size: 12px;
-}
-
-.section.open .section-chevron { transform: rotate(180deg); }
-
-.section-body {
-  display: none;
-  padding: 0 20px 20px;
-  border-top: 1px solid var(--border);
-}
-
-.section.open .section-body { display: block; padding-top: 16px; }
-
-/* ============================================
-   FORM ELEMENTS
-   ============================================ */
-.form-group {
-  margin-bottom: 14px;
-}
-
-.form-group label {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-}
-
+/* ================================================
+   FORMS
+   ================================================ */
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-family:var(--font-m);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:5px}
 .form-group input[type="time"],
 .form-group input[type="number"],
-.form-group input[type="text"] {
-  width: 100%;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 16px;
-  padding: 10px 14px;
-  outline: none;
-  transition: border-color var(--transition);
-  -webkit-appearance: none;
-}
+.form-group select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--font-m);font-size:15px;padding:10px 12px;outline:none;transition:border-color var(--t);-webkit-appearance:none;appearance:none}
+.form-group select{cursor:pointer}
+.form-group select option{background:#1a1a1a}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent-dim)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.info-text{font-family:var(--font-m);font-size:10px;color:var(--text-muted);margin-top:5px;line-height:1.7}
+input[type="range"]{width:100%;accent-color:var(--accent);cursor:pointer;margin-top:8px}
+.range-row{display:flex;align-items:center;gap:10px}
+.range-val{font-family:var(--font-m);font-size:12px;color:var(--accent);min-width:40px;text-align:right}
 
-.form-group input:focus {
-  border-color: var(--accent-dim);
-}
+/* ================================================
+   TOGGLE
+   ================================================ */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-family:var(--font-m);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim)}
+.toggle{position:relative;width:38px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:10px;cursor:pointer;transition:background .2s}
+.toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:var(--text-muted);border-radius:50%;transition:transform .2s,background .2s}
+.toggle input:checked+.toggle-slider{background:var(--accent-dim)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(18px);background:var(--accent)}
 
-.form-group input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
-
-.info-text {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-muted);
-  margin-top: 6px;
-  line-height: 1.6;
-}
-
-/* ============================================
+/* ================================================
    BUTTONS
-   ============================================ */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface2);
-  color: var(--text);
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition);
-  width: 100%;
-  letter-spacing: 0.01em;
-  position: relative;
-  overflow: hidden;
-}
+   ================================================ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface2);color:var(--text);font-family:var(--font-d);font-size:13px;font-weight:600;cursor:pointer;transition:all var(--t);width:100%;letter-spacing:.01em}
+.btn:hover{background:#1e1e1e}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--accent);color:#0a0a0a;border-color:var(--accent);font-weight:700}
+.btn-primary:hover{background:#d4ff55;border-color:#d4ff55}
+.btn-danger{background:var(--danger-glow);color:var(--danger);border-color:var(--danger-dim)}
+.btn-danger:hover{background:rgba(255,64,64,.2)}
+.btn-warn{background:rgba(240,165,0,.08);color:var(--warn);border-color:var(--warn-dim)}
+.btn-warn:hover{background:rgba(240,165,0,.16)}
+.btn-soft{background:rgba(240,165,0,.08);color:var(--warn);border-color:var(--warn-dim);font-size:12px;padding:9px 14px}
+.btn-soft:hover{background:rgba(240,165,0,.16)}
+.btn-row{display:flex;gap:8px}
+.btn-row .btn{flex:1}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
 
-.btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: white;
-  opacity: 0;
-  transition: opacity var(--transition);
-}
-
-.btn:hover::before { opacity: 0.04; }
-.btn:active { transform: scale(0.98); }
-
-.btn-primary {
-  background: var(--accent);
-  color: #0a0a0a;
-  border-color: var(--accent);
-  font-weight: 700;
-}
-
-.btn-primary:hover { background: #d4ff55; border-color: #d4ff55; }
-
-.btn-danger {
-  background: rgba(255, 64, 64, 0.1);
-  color: var(--danger);
-  border-color: var(--danger-dim);
-}
-
-.btn-danger:hover { background: rgba(255, 64, 64, 0.18); }
-
-.btn-row {
-  display: flex;
-  gap: 10px;
-}
-
-.btn-row .btn { flex: 1; }
-
-.btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* ============================================
-   TOAST NOTIFICATION
-   ============================================ */
-#toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%) translateY(80px);
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px 20px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text);
-  z-index: 1000;
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s;
-  opacity: 0;
-  white-space: nowrap;
-  max-width: 90vw;
-  text-align: center;
-}
-
-#toast.show {
-  transform: translateX(-50%) translateY(0);
-  opacity: 1;
-}
-
-#toast.positive { border-color: var(--accent-dim); color: var(--accent); }
-#toast.negative { border-color: var(--danger-dim); color: var(--danger); }
-#toast.warn { border-color: #7a5a00; color: var(--warn); }
-
-/* ============================================
-   SETTINGS PANEL
-   ============================================ */
-.settings-panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 12px;
-}
-
-.settings-panel h3 {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-muted);
-  margin-bottom: 16px;
-}
-
-/* ============================================
-   DAILY LOG
-   ============================================ */
-.log-entry {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-dim);
-}
-
-.log-entry:last-child { border-bottom: none; }
-
-.log-icon {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  flex-shrink: 0;
-  font-size: 13px;
-}
-
-.log-icon.plus { background: rgba(200, 245, 66, 0.1); }
-.log-icon.minus { background: rgba(255, 64, 64, 0.1); }
-
-.log-desc { flex: 1; }
-
-.log-xp {
-  font-weight: 700;
-  font-size: 12px;
-}
-
-.log-xp.plus { color: var(--accent); }
-.log-xp.minus { color: var(--danger); }
-
-/* ============================================
+/* ================================================
    DIVIDER
-   ============================================ */
-.section-divider {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--text-muted);
-  margin: 24px 0 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+   ================================================ */
+.section-divider{font-family:var(--font-m);font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-muted);margin:22px 0 12px;display:flex;align-items:center;gap:10px}
+.section-divider::after{content:'';flex:1;height:1px;background:var(--border)}
 
-.section-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
+/* ================================================
+   DAILY LOG
+   ================================================ */
+.log-entry{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);font-family:var(--font-m);font-size:11px;color:var(--text-dim)}
+.log-entry:last-child{border-bottom:none}
+.log-icon{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0;font-size:12px}
+.log-icon.plus{background:rgba(200,245,66,.1)}
+.log-icon.minus{background:rgba(255,64,64,.1)}
+.log-icon.bonus{background:rgba(255,215,0,.12)}
+.log-desc{flex:1;line-height:1.4}
+.log-time{font-size:9px;color:var(--text-muted);flex-shrink:0}
+.log-xp{font-weight:700;font-size:11px;white-space:nowrap;flex-shrink:0}
+.log-xp.plus{color:var(--accent)}
+.log-xp.minus{color:var(--danger)}
+.log-xp.bonus{color:var(--gold)}
 
-/* ============================================
-   END OF DAY
-   ============================================ */
-.eod-btn-wrap {
-  margin-top: 20px;
-}
+/* ================================================
+   HISTORY
+   ================================================ */
+.history-entry{display:flex;align-items:stretch;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden;transition:border-color var(--t);animation:fadeUp .3s ease backwards}
+.history-entry:hover{border-color:#2a2a2a}
+.history-stripe{width:4px;flex-shrink:0}
+.history-stripe.success{background:var(--accent)}
+.history-stripe.partial{background:var(--warn)}
+.history-stripe.fail{background:var(--danger)}
+.history-main{flex:1;padding:13px 15px}
+.history-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.history-date{font-family:var(--font-m);font-size:11px;color:var(--text);font-weight:700}
+.history-status{font-family:var(--font-m);font-size:9px;padding:3px 7px;border-radius:3px;letter-spacing:.06em;border:1px solid}
+.history-status.success{color:var(--accent);border-color:var(--accent-dim);background:rgba(200,245,66,.07)}
+.history-status.partial{color:var(--warn);border-color:var(--warn-dim);background:rgba(240,165,0,.07)}
+.history-status.fail{color:var(--danger);border-color:var(--danger-dim);background:rgba(255,64,64,.07)}
+.history-summary{display:flex;flex-wrap:wrap;gap:5px}
+.history-chip{font-family:var(--font-m);font-size:9px;padding:2px 7px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim)}
+.history-chip.ok{color:var(--accent);border-color:rgba(200,245,66,.2)}
+.history-chip.soft{color:var(--warn);border-color:rgba(240,165,0,.2)}
+.history-chip.fail{color:var(--danger);border-color:rgba(255,64,64,.2)}
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-@media (max-width: 480px) {
-  .status-bar { flex-wrap: wrap; }
-  .streak-pill { width: 100%; justify-content: center; }
-  .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .stat-box { padding: 10px 8px; }
-  .stat-value { font-size: 20px; }
-}
+/* ================================================
+   SETTINGS PANEL
+   ================================================ */
+.settings-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:10px}
+.settings-panel h3{font-family:var(--font-m);font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-muted);margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--border)}
 
-/* ============================================
+/* ================================================
+   CONFIRM MODAL
+   ================================================ */
+#confirmModal{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px}
+#confirmModal.show{display:flex}
+.modal-box{background:var(--surface);border:1px solid var(--danger-dim);border-radius:var(--r);padding:26px;max-width:360px;width:100%;animation:fadeUp .2s ease}
+.modal-box h2{font-size:20px;font-weight:800;letter-spacing:-.02em;margin-bottom:10px;color:var(--danger)}
+.modal-box p{font-family:var(--font-m);font-size:10px;color:var(--text-muted);line-height:1.9;margin-bottom:20px}
+
+/* ================================================
+   TOAST
+   ================================================ */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:11px 18px;font-family:var(--font-m);font-size:12px;color:var(--text);z-index:1000;transition:transform .32s cubic-bezier(0.4,0,0.2,1),opacity .32s;opacity:0;max-width:92vw;text-align:center;white-space:pre-line}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.positive{border-color:var(--accent-dim);color:var(--accent)}
+#toast.negative{border-color:var(--danger-dim);color:var(--danger)}
+#toast.warn{border-color:var(--warn-dim);color:var(--warn)}
+#toast.bonus{border-color:#aa8800;color:var(--gold)}
+
+/* ================================================
+   EMPTY STATE
+   ================================================ */
+.empty-state{font-family:var(--font-m);font-size:10px;color:var(--text-muted);padding:32px 0;text-align:center;letter-spacing:.08em;line-height:2.4}
+
+/* ================================================
    ANIMATIONS
-   ============================================ */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+   ================================================ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ================================================
+   RESPONSIVE
+   ================================================ */
+@media(max-width:480px){
+  .status-bar{flex-wrap:wrap}
+  .streak-pill{width:100%;justify-content:center}
+  .stats-grid{gap:7px}
+  .stat-box{padding:10px 7px}
+  .stat-value{font-size:19px}
+  .form-row{grid-template-columns:1fr}
+  .nav-tab{font-size:9px;padding:8px 2px}
+  .btn-row{flex-direction:column}
 }
-
-.player-card, .status-bar, .section, .settings-panel {
-  animation: fadeIn 0.4s ease backwards;
-}
-
-.player-card { animation-delay: 0.05s; }
-.status-bar { animation-delay: 0.1s; }
-.section:nth-child(1) { animation-delay: 0.15s; }
-.section:nth-child(2) { animation-delay: 0.2s; }
-.section:nth-child(3) { animation-delay: 0.25s; }
-.section:nth-child(4) { animation-delay: 0.3s; }
-
-/* Stat flash animation */
-@keyframes statFlash {
-  0%, 100% { color: var(--text); }
-  50% { color: var(--accent); }
-}
-
-.stat-value.flash { animation: statFlash 0.6s ease; }
 </style>
 </head>
 <body>
+
+<!-- BACKGROUNDS -->
+<div id="bg-layer" class="style-stoic"></div>
+<div id="noise"></div>
+
+<!-- LEVEL-UP OVERLAY -->
+<div id="lvlOverlay">
+  <div class="lvl-label">SEVİYE ATLADI</div>
+  <div class="lvl-num" id="lvlOverlayNum">2</div>
+  <div class="lvl-rank" id="lvlOverlayRank">Acemi</div>
+</div>
+
+<!-- CRITICAL BONUS FLASH -->
+<div id="critFlash"></div>
 
 <div class="app">
 
   <!-- HEADER -->
   <div class="header">
     <div class="header-left">
-      <h1>DİSİPLİN</h1>
+      <h1>DİSİPLİN <span id="diffBadgeHeader" class="diff-badge normal">NORMAL</span></h1>
       <p>Kendi savaşını kazan</p>
     </div>
     <div class="date-badge" id="dateBadge">—</div>
   </div>
 
-  <!-- PLAYER CARD -->
-  <div class="player-card">
-    <div class="level-row">
-      <div class="level-num" id="levelNum">1</div>
-      <div>
-        <div class="level-label">Seviye</div>
-        <div id="rankTitle" style="font-size:12px;color:var(--text-dim);margin-top:2px;">Çaylak</div>
-      </div>
-    </div>
-
-    <div class="xp-section">
-      <div class="xp-label-row">
-        <span>Deneyim (XP)</span>
-        <strong id="xpText">0 / 100</strong>
-      </div>
-      <div class="xp-bar-track">
-        <div class="xp-bar-fill" id="xpBar"></div>
-      </div>
-    </div>
-
-    <div class="stats-grid">
-      <div class="stat-box">
-        <div class="stat-icon">🧠</div>
-        <div class="stat-value" id="statInt">10</div>
-        <div class="stat-name">Zeka</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-icon">💪</div>
-        <div class="stat-value" id="statStr">10</div>
-        <div class="stat-name">Güç</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-icon">🎯</div>
-        <div class="stat-value" id="statFoc">10</div>
-        <div class="stat-name">Odak</div>
-      </div>
-    </div>
+  <!-- NAV -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('dashboard')">📊 Panel</button>
+    <button class="nav-tab"        onclick="switchTab('tasks')">⚔️ Görevler</button>
+    <button class="nav-tab"        onclick="switchTab('history')">📅 Geçmiş</button>
+    <button class="nav-tab"        onclick="switchTab('settings')">⚙️ Ayarlar</button>
   </div>
 
-  <!-- STATUS BAR -->
-  <div class="status-bar">
-    <div class="status-pill neutral" id="dayStatusPill">
-      <div class="status-dot"></div>
-      <div>
-        <div class="status-text">Bugün</div>
-        <div class="status-val" id="dayStatusText">Değerlendirilmedi</div>
+  <!-- ════════════════ TAB: DASHBOARD ════════════════ -->
+  <div class="tab-panel active" id="tab-dashboard">
+
+    <!-- PLAYER CARD -->
+    <div class="player-card">
+      <div class="level-row">
+        <div class="level-num" id="levelNum">1</div>
+        <div class="level-meta">
+          <div class="level-label">Seviye</div>
+          <div class="rank-title" id="rankTitle">Çaylak</div>
+          <div class="rank-subtitle" id="rankSubtitle">Yolculuğunun başındasın.</div>
+          <!-- Streak Shields -->
+          <div class="shield-row" id="shieldRow">
+            <span class="shield-label">Kalkan:</span>
+            <span class="shield-icon" id="shield0">🛡</span>
+            <span class="shield-icon" id="shield1">🛡</span>
+            <span class="shield-icon" id="shield2">🛡</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="xp-section">
+        <div class="xp-label-row">
+          <span>Deneyim (XP)</span>
+          <strong id="xpText">0 / 200</strong>
+        </div>
+        <div class="xp-bar-track">
+          <div class="xp-bar-fill" id="xpBar"></div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box" id="box-int">
+          <div class="stat-icon">🧠</div>
+          <div class="stat-value" id="statInt">10</div>
+          <div class="stat-name">Zeka</div>
+          <div class="stat-sub">Çalışma ile artar</div>
+        </div>
+        <div class="stat-box" id="box-str">
+          <div class="stat-icon">💪</div>
+          <div class="stat-value" id="statStr">10</div>
+          <div class="stat-name">Güç</div>
+          <div class="stat-sub">Antrenman ile artar</div>
+        </div>
+        <div class="stat-box" id="box-foc">
+          <div class="stat-icon">🎯</div>
+          <div class="stat-value" id="statFoc">10</div>
+          <div class="stat-name">Odak</div>
+          <div class="stat-sub">Ekran kontrolü</div>
+        </div>
       </div>
     </div>
-    <div class="streak-pill">
-      <div class="streak-fire">🔥</div>
-      <div>
-        <div class="streak-count" id="streakCount">0</div>
-        <div class="streak-label">Seri</div>
+
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+      <div class="status-pill neutral" id="dayStatusPill">
+        <div class="status-dot"></div>
+        <div>
+          <div class="status-text">Bugün</div>
+          <div class="status-val" id="dayStatusText">Devam Ediyor</div>
+        </div>
+      </div>
+      <div class="streak-pill">
+        <div class="streak-fire">🔥</div>
+        <div>
+          <div class="streak-count" id="streakCount">0</div>
+          <div class="streak-label">Seri</div>
+        </div>
       </div>
     </div>
+
+    <!-- DAILY LOG -->
+    <div class="section-divider">Günlük Hareketler</div>
+    <div id="dailyLog"></div>
+
+    <!-- END DAY -->
+    <div style="margin-top:18px">
+      <button class="btn btn-warn" onclick="endDay()" id="endDayBtn">⚑ Günü Kapat &amp; Değerlendir</button>
+    </div>
+
   </div>
 
-  <!-- DAILY LOG -->
-  <div class="section-divider">Günlük Hareketler</div>
-  <div id="dailyLog" style="margin-bottom:20px;"></div>
+  <!-- ════════════════ TAB: TASKS ════════════════ -->
+  <div class="tab-panel" id="tab-tasks">
 
-  <!-- ============ SECTIONS ============ -->
-  <div class="section-divider">Görevler</div>
-
-  <!-- 1. UYKU / UYANMA -->
-  <div class="section" id="sec-wake">
-    <div class="section-header" onclick="toggleSection('sec-wake')">
-      <div class="section-icon">⏰</div>
-      <div class="section-title">
-        <h3>Disiplin — Uyku & Uyanış</h3>
-        <p>Erken kalk, güne hâkim ol</p>
+    <!-- 1. WAKE -->
+    <div class="section" id="sec-wake">
+      <div class="section-header" onclick="toggleSection('sec-wake')">
+        <div class="section-icon">⏰</div>
+        <div class="section-title"><h3>Disiplin — Uyanış</h3><p>Erken kalk, güne hâkim ol</p></div>
+        <div class="section-badge" id="badge-wake">Bekliyor</div>
+        <div class="section-chevron">▼</div>
       </div>
-      <div class="section-badge" id="badge-wake">Bekliyor</div>
-      <div class="section-chevron">▼</div>
+      <div class="section-body">
+        <div class="micro-prompt">
+          💡 <strong>Küçük adım:</strong> Telefona bakmadan önce bu ekranı aç ve uyanış saatini gir. 30 saniye yeterli.
+        </div>
+
+        <!-- 3-Zone bar (populated by JS) -->
+        <div class="zone-bar" id="wakeZoneBar">
+          <div class="zone-seg" id="wz0"></div>
+          <div class="zone-seg" id="wz1"></div>
+          <div class="zone-seg" id="wz2"></div>
+        </div>
+        <div class="zone-labels">
+          <span id="wzone-perfect">🟢 Mükemmel</span>
+          <span id="wzone-soft">🟡 Kabul edilebilir</span>
+          <span id="wzone-fail">🔴 Başarısız</span>
+        </div>
+
+        <div class="form-group">
+          <label>Kaçta uyandın?</label>
+          <input type="time" id="wakeInput" oninput="previewWakeZone()"/>
+        </div>
+        <p class="info-text" id="wakeInfo">—</p>
+        <button class="btn btn-primary" onclick="logWakeUp()" style="margin-top:12px">⏰ Uyanışı Kaydet</button>
+      </div>
     </div>
-    <div class="section-body">
+
+    <!-- 2. STUDY -->
+    <div class="section" id="sec-study">
+      <div class="section-header" onclick="toggleSection('sec-study')">
+        <div class="section-icon">📚</div>
+        <div class="section-title"><h3>Üretkenlik — Çalışma</h3><p>Her dakika Zeka puanı kazandırır</p></div>
+        <div class="section-badge" id="badge-study">Bekliyor</div>
+        <div class="section-chevron">▼</div>
+      </div>
+      <div class="section-body">
+        <div class="micro-prompt">
+          💡 <strong>Sadece 10 dakika başla.</strong> Başlamak en zor kısım — kaydeder, devam edersin. Kısmen de olsa ilerleme, XP kazandırır.
+        </div>
+        <div class="form-group">
+          <label>Kaç dakika çalıştın?</label>
+          <input type="number" id="studyInput" placeholder="örn. 90" min="1" max="720" oninput="previewStudyZone()"/>
+        </div>
+        <!-- Study zone indicator -->
+        <div class="zone-bar" id="studyZoneBar">
+          <div class="zone-seg" id="sz0"></div>
+          <div class="zone-seg" id="sz1"></div>
+          <div class="zone-seg" id="sz2"></div>
+          <div class="zone-seg" id="sz3"></div>
+        </div>
+        <div class="zone-labels" style="justify-content:space-between">
+          <span id="szone-perfect">🟢 Mükemmel</span>
+          <span id="szone-good">🟡 İyi</span>
+          <span id="szone-partial">🟠 Kısmi</span>
+          <span id="szone-fail">🔴 Yetersiz</span>
+        </div>
+        <p class="info-text" id="studyInfo">—</p>
+        <button class="btn btn-primary" onclick="logStudy()" style="margin-top:12px">📚 Çalışmayı Kaydet</button>
+      </div>
+    </div>
+
+    <!-- 3. WORKOUT -->
+    <div class="section" id="sec-workout">
+      <div class="section-header" onclick="toggleSection('sec-workout')">
+        <div class="section-icon">💪</div>
+        <div class="section-title"><h3>Fiziksel — Antrenman</h3><p>Sert ol, sonuçlar konuşur</p></div>
+        <div class="section-badge" id="badge-workout">Bekliyor</div>
+        <div class="section-chevron">▼</div>
+      </div>
+      <div class="section-body">
+        <div class="micro-prompt">
+          💡 <strong>Yürüyüş bile sayılır.</strong> "Kısmi yaptım" seçeneğini kullan — hiç yapmamaktan iyidir, küçük ceza ile geçer.
+        </div>
+        <div class="btn-row" style="flex-direction:column;gap:8px">
+          <button class="btn btn-primary"  onclick="logWorkout('full')">💪 Tam yaptım — tam XP</button>
+          <button class="btn btn-soft"     onclick="logWorkout('partial')">🚶 Kısmi yaptım — yarım XP, ceza yok</button>
+          <button class="btn btn-danger"   onclick="logWorkout('none')">✗ Yapmadım — ceza uygulanır</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. SCREEN -->
+    <div class="section" id="sec-screen">
+      <div class="section-header" onclick="toggleSection('sec-screen')">
+        <div class="section-icon">📱</div>
+        <div class="section-title"><h3>Kontrol — Ekran Süresi</h3><p>Limiti aşarsan Odak düşer</p></div>
+        <div class="section-badge" id="badge-screen">Bekliyor</div>
+        <div class="section-chevron">▼</div>
+      </div>
+      <div class="section-body">
+        <div class="form-group">
+          <label>Bugün kaç dakika ekrana baktın?</label>
+          <input type="number" id="screenInput" placeholder="örn. 120" min="0" max="1440" oninput="previewScreenZone()"/>
+        </div>
+        <!-- Screen zone bar -->
+        <div class="zone-bar" id="screenZoneBar">
+          <div class="zone-seg" id="scz0"></div>
+          <div class="zone-seg" id="scz1"></div>
+          <div class="zone-seg" id="scz2"></div>
+        </div>
+        <div class="zone-labels">
+          <span id="sczone-ok">🟢 Kontrollü</span>
+          <span id="sczone-soft">🟡 Hafif aşım</span>
+          <span id="sczone-fail">🔴 Aşırı kullanım</span>
+        </div>
+        <p class="info-text" id="screenInfo">—</p>
+        <button class="btn btn-primary" onclick="logScreen()" style="margin-top:12px">📱 Ekran Süresini Kaydet</button>
+      </div>
+    </div>
+
+  </div><!-- /tab-tasks -->
+
+  <!-- ════════════════ TAB: HISTORY ════════════════ -->
+  <div class="tab-panel" id="tab-history">
+    <div class="section-divider">Geçmiş Günler</div>
+    <div id="historyList"></div>
+  </div>
+
+  <!-- ════════════════ TAB: SETTINGS ════════════════ -->
+  <div class="tab-panel" id="tab-settings">
+
+    <div class="settings-panel">
+      <h3>📋 Hedefler</h3>
+      <div class="form-row">
+        <div class="form-group"><label>Hedef Uyanma Saati</label><input type="time" id="settingWakeTarget" value="06:30"/></div>
+        <div class="form-group"><label>Min. Çalışma (dk)</label><input type="number" id="settingStudyMin" value="120" min="10"/></div>
+      </div>
       <div class="form-group">
-        <label>Kaçta uyandın?</label>
-        <input type="time" id="wakeInput" />
+        <label>Maks. Ekran Süresi (dk)</label>
+        <input type="number" id="settingScreenMax" value="120" min="10"/>
       </div>
-      <div class="info-text" id="wakeInfo">Hedef: — | Erken uyanırsan XP kazanırsın, geç kalırsan ceza yiyersin.</div>
-      <button class="btn btn-primary" onclick="logWakeUp()" style="margin-top:12px;">⏰ Uyanışı Kaydet</button>
-    </div>
-  </div>
-
-  <!-- 2. ÇALIŞMA -->
-  <div class="section" id="sec-study">
-    <div class="section-header" onclick="toggleSection('sec-study')">
-      <div class="section-icon">📚</div>
-      <div class="section-title">
-        <h3>Üretkenlik — Çalışma</h3>
-        <p>Her dakika Zeka puanı kazandırır</p>
-      </div>
-      <div class="section-badge" id="badge-study">Bekliyor</div>
-      <div class="section-chevron">▼</div>
-    </div>
-    <div class="section-body">
       <div class="form-group">
-        <label>Kaç dakika çalıştın?</label>
-        <input type="number" id="studyInput" placeholder="örn. 90" min="1" max="720" />
+        <label>Kabul Edilebilir Geç Uyanış (dakika)</label>
+        <input type="number" id="settingWakeTolerance" value="30" min="0" max="120"/>
+        <p class="info-text">Bu süreden az geç uyarsan serin kurtarsın, küçük ceza.</p>
       </div>
-      <div class="info-text" id="studyInfo">Minimum: — dk | Her 30 dk = 20 XP + Zeka +1</div>
-      <button class="btn btn-primary" onclick="logStudy()" style="margin-top:12px;">📚 Çalışmayı Kaydet</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Hedefleri Kaydet</button>
     </div>
-  </div>
 
-  <!-- 3. ANTRENMAN -->
-  <div class="section" id="sec-workout">
-    <div class="section-header" onclick="toggleSection('sec-workout')">
-      <div class="section-icon">💪</div>
-      <div class="section-title">
-        <h3>Fiziksel — Antrenman</h3>
-        <p>Yaptın mı yaptın, yapmadın mı ceza var</p>
-      </div>
-      <div class="section-badge" id="badge-workout">Bekliyor</div>
-      <div class="section-chevron">▼</div>
-    </div>
-    <div class="section-body">
-      <p class="info-text" style="margin-bottom:14px;">Bugün antrenman yaptın mı? Dürüst ol — sistem seni izliyor.</p>
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="logWorkout(true)">💪 Evet, yaptım</button>
-        <button class="btn btn-danger" onclick="logWorkout(false)">✗ Yapmadım</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4. EKRAN SÜRESİ -->
-  <div class="section" id="sec-screen">
-    <div class="section-header" onclick="toggleSection('sec-screen')">
-      <div class="section-icon">📱</div>
-      <div class="section-title">
-        <h3>Kontrol — Ekran Süresi</h3>
-        <p>Limiti aşarsan Odak düşer</p>
-      </div>
-      <div class="section-badge" id="badge-screen">Bekliyor</div>
-      <div class="section-chevron">▼</div>
-    </div>
-    <div class="section-body">
+    <div class="settings-panel">
+      <h3>⚔️ Zorluk Modu</h3>
       <div class="form-group">
-        <label>Bugün kaç dakika ekrana baktın?</label>
-        <input type="number" id="screenInput" placeholder="örn. 120" min="0" max="1440" />
+        <label>Mod Seç</label>
+        <select id="settingDifficulty" onchange="updateDiffInfo()">
+          <option value="easy">Kolay — Düşük cezalar, yüksek ödüller</option>
+          <option value="normal" selected>Normal — Dengeli sistem</option>
+          <option value="hard">Zor — Sert cezalar, az merhamet</option>
+        </select>
       </div>
-      <div class="info-text" id="screenInfo">Limit: — dk | Aşarsan XP cezası ve Odak düşer.</div>
-      <button class="btn btn-primary" onclick="logScreen()" style="margin-top:12px;">📱 Ekran Süresini Kaydet</button>
+      <p class="info-text" id="diffInfo" style="margin-bottom:14px;color:var(--text-dim)"></p>
+      <button class="btn btn-primary" onclick="saveDifficulty()">Modu Kaydet</button>
     </div>
-  </div>
 
-  <!-- ============ GÜN SONU ============ -->
-  <div class="eod-btn-wrap">
-    <button class="btn" onclick="endDay()" id="endDayBtn" style="border-color:var(--warn);color:var(--warn);font-size:13px;">
-      ⚑ Günü Bitir & Değerlendir
-    </button>
-  </div>
+    <div class="settings-panel">
+      <h3>🎲 Değişken Ödül Sistemi</h3>
+      <div class="toggle-row">
+        <span class="toggle-label">Sürpriz Bonus Aktif</span>
+        <label class="toggle">
+          <input type="checkbox" id="settingVariableRewards" checked/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <p class="info-text" style="margin-top:10px">Aktif olduğunda bazı aksiyonlarda rastgele ×1.5 veya ×2 XP bonusu kazanılabilir. Bu psikolojik bir motivasyon mekanizmasıdır.</p>
+    </div>
 
-  <!-- ============ AYARLAR ============ -->
-  <div class="section-divider" style="margin-top:32px;">Ayarlar</div>
+    <div class="settings-panel">
+      <h3>🎨 Görünüm &amp; Arka Plan</h3>
+      <div class="form-group">
+        <label>Arka Plan Stili</label>
+        <select id="settingBgStyle" onchange="previewBgStyle(this.value)">
+          <option value="stoic">Stoacı — Altın / mermer ton</option>
+          <option value="marble">Mermer — Gri-beyaz damarlar</option>
+          <option value="minimal">Minimal — Sade siyah</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Arka Plan Yoğunluğu</label>
+        <div class="range-row">
+          <input type="range" id="settingBgOpacity" min="0" max="100" value="100" oninput="previewBgOpacity(this.value)"/>
+          <span class="range-val" id="bgOpacityVal">100%</span>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Arka Plan Aktif</span>
+        <label class="toggle">
+          <input type="checkbox" id="settingBgEnabled" checked onchange="previewBgToggle(this.checked)"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <button class="btn btn-primary" onclick="saveAppearance()" style="margin-top:14px">Görünümü Kaydet</button>
+    </div>
 
-  <div class="settings-panel">
-    <h3>Hedeflerini Ayarla</h3>
-    <div class="form-group">
-      <label>Hedef Uyanma Saati</label>
-      <input type="time" id="settingWakeTarget" value="06:30" />
+    <div class="settings-panel" style="border-color:var(--danger-dim)">
+      <h3 style="color:var(--danger)">⚠️ Tehlike Bölgesi</h3>
+      <p class="info-text" style="margin-bottom:14px">Tüm veriler kalıcı olarak silinir. XP · Seviye · Statlar · Seri · Geçmiş<br><strong style="color:var(--danger)">Geri alınamaz.</strong></p>
+      <button class="btn btn-danger" onclick="showResetModal()">🗑 Tüm Verileri Sıfırla</button>
     </div>
-    <div class="form-group">
-      <label>Minimum Günlük Çalışma (dakika)</label>
-      <input type="number" id="settingStudyMin" value="120" min="10" />
-    </div>
-    <div class="form-group">
-      <label>Maksimum Ekran Süresi (dakika)</label>
-      <input type="number" id="settingScreenMax" value="120" min="10" />
-    </div>
-    <div class="btn-row" style="margin-top:4px;">
-      <button class="btn btn-primary" onclick="saveSettings()">Kaydet</button>
-      <button class="btn btn-danger" onclick="resetData()">Sıfırla</button>
-    </div>
+
   </div>
 
 </div><!-- /app -->
 
-<!-- TOAST -->
 <div id="toast"></div>
 
-<!-- ============================================================
-     JAVASCRIPT
-     ============================================================ -->
+<!-- CONFIRM MODAL -->
+<div id="confirmModal">
+  <div class="modal-box">
+    <h2>Emin misin?</h2>
+    <p>Silinecekler:<br>· XP &amp; Seviye · Zeka / Güç / Odak statları<br>· Tüm geçmiş · Seri &amp; Kalkanlar<br><br><strong style="color:var(--danger)">Bu işlem geri alınamaz.</strong></p>
+    <div class="btn-row">
+      <button class="btn"            onclick="hideModal()">İptal</button>
+      <button class="btn btn-danger" onclick="confirmReset()">Evet, Sıfırla</button>
+    </div>
+  </div>
+</div>
+
 <script>
-/* ----------------------------------------
-   DATA MODEL
-   ---------------------------------------- */
-const DEFAULT_STATE = {
-  level: 1,
-  xp: 0,
-  stats: { intelligence: 10, strength: 10, focus: 10 },
-  streak: 0,
-  lastDayDate: null,
-  settings: {
-    wakeTarget: '06:30',
-    studyMinMinutes: 120,
-    screenMaxMinutes: 120,
-  },
-  today: {
-    date: null,
-    wakeLogged: false,
-    wakeTime: null,
-    wakeSuccess: null,
-    studyLogged: false,
-    studyMinutes: 0,
-    studySuccess: null,
-    workoutLogged: false,
-    workoutDone: null,
-    screenLogged: false,
-    screenMinutes: 0,
-    screenSuccess: null,
-    dayEnded: false,
-    daySuccess: null,
-    log: [],  // {icon, desc, xp}
-  },
-  workoutSkipDays: 0,
+/* ══════════════════════════════════════════════
+   CONSTANTS
+   ══════════════════════════════════════════════ */
+const DIFFICULTY = {
+  easy:  { xpM:1.35, penM:0.65, label:'KOLAY' },
+  normal:{ xpM:1.0,  penM:1.0,  label:'NORMAL' },
+  hard:  { xpM:0.8,  penM:1.5,  label:'ZOR' },
 };
-
-/* ----------------------------------------
-   LEVEL THRESHOLDS
-   ---------------------------------------- */
-function xpForLevel(lvl) {
-  return Math.floor(100 * Math.pow(1.35, lvl - 1));
-}
-
-const RANK_TITLES = [
-  'Çaylak', 'Acemi', 'Aday', 'Kahraman',
-  'Savaşçı', 'Uzman', 'Usta', 'Efsane', 'Titan', 'Tanrı'
+const DIFF_INFO = {
+  easy:  '✦ XP %35 fazla · Cezalar %35 düşük · Yeni başlayanlar için',
+  normal:'✦ Dengeli sistem · Standart XP ve cezalar',
+  hard:  '✦ XP %20 az · Cezalar %50 ağır · Gerçek disiplin için',
+};
+const RANKS = [
+  ['Çaylak',       'Yolculuğun başındasın.'],
+  ['Acemi',        'İlk adımlar en önemli.'],
+  ['Aday',         'Alışkanlıklar şekilleniyor.'],
+  ['Kahraman',     'Disiplin yerleşmeye başladı.'],
+  ['Savaşçı',      'Günlük savaşlarını kazanıyorsun.'],
+  ['Uzman',        'Tutarlılık bir kimliğe dönüştü.'],
+  ['Usta',         'Az kişi bu seviyeye ulaşır.'],
+  ['Efsane',       'Disiplin senin doğanın parçası.'],
+  ['Titan',        'Zihin ve beden tam kontrol.'],
+  ['Tanrı',        'Kendini fethettin.'],
 ];
 
-function rankTitle(lvl) {
-  return RANK_TITLES[Math.min(lvl - 1, RANK_TITLES.length - 1)];
+const SHIELD_MAX = 3;
+
+/* ══════════════════════════════════════════════
+   XP ECONOMY — slow, meaningful progression
+   ══════════════════════════════════════════════ */
+// xpForLevel(n): XP needed to go from level n to n+1
+function xpForLevel(n) { return 200 + (n - 1) * 120; }
+// Total XP from level 1 to reach level n
+function totalXPForLevel(n) {
+  let t = 0;
+  for (let i = 1; i < n; i++) t += xpForLevel(i);
+  return t;
 }
 
-/* ----------------------------------------
-   STATE MANAGEMENT
-   ---------------------------------------- */
+/* XP base values — intentionally small */
+const XP = {
+  wakePerfect: 12,     // on-time or early
+  wakeSoft: 5,         // 1–tolerance min late
+  wakeBonus: 3,        // per 5 min early (capped at 8)
+  studyPer30: 6,       // per 30-min block
+  studyPerfectBonus: 8,// ≥100% of target
+  workoutFull: 20,
+  workoutPartial: 10,
+  screenOk: 8,
+  dayBonus: 10,        // base day-success bonus
+  dayBonusPerStreak: 2,// per streak day
+};
+const PENALTIES = {
+  wakeHard: 10,        // >tolerance late
+  studyPartial: 5,     // 50-74% of target
+  studyFail: 12,       // <50% of target
+  workoutMissed: 8,
+  workoutSkip2: 14,    // 2+ days missed
+  screenSoft: 5,       // 1-30 min over
+  screenHard: 15,      // >30 min over
+  dayFail: 8,
+};
+
+/* ══════════════════════════════════════════════
+   DATA MODEL
+   ══════════════════════════════════════════════ */
+const DEFAULTS = {
+  level:1, xp:0,
+  stats:{ intelligence:10, strength:10, focus:10 },
+  streak:0, shields:0, workoutSkipDays:0,
+  settings:{
+    wakeTarget:'06:30', studyMinMinutes:120, screenMaxMinutes:120,
+    difficulty:'normal', wakeTolerance:30, variableRewards:true,
+  },
+  appearance:{ bgStyle:'stoic', bgOpacity:100, bgEnabled:true },
+  today:{
+    date:null,
+    wakeLogged:false, wakeTime:null, wakeZone:null,
+    studyLogged:false, studyMinutes:0, studyZone:null,
+    workoutLogged:false, workoutResult:null,
+    screenLogged:false, screenMinutes:0, screenZone:null,
+    dayEnded:false, daySuccess:null, dayGrade:null,
+    log:[],
+  },
+  history:[],
+};
+
 let state;
 
 function loadState() {
   try {
-    const raw = localStorage.getItem('disciplineApp_v2');
-    state = raw ? JSON.parse(raw) : deepClone(DEFAULT_STATE);
-  } catch(e) {
-    state = deepClone(DEFAULT_STATE);
-  }
-  // Ensure nested defaults
-  state.stats = state.stats || {...DEFAULT_STATE.stats};
-  state.settings = state.settings || {...DEFAULT_STATE.settings};
-  state.today = state.today || {...DEFAULT_STATE.today};
-  if (!state.today.log) state.today.log = [];
-}
-
-function saveState() {
-  localStorage.setItem('disciplineApp_v2', JSON.stringify(state));
-}
-
-function deepClone(obj) {
-  return JSON.parse(JSON.stringify(obj));
-}
-
-/* ----------------------------------------
-   DATE UTILITIES
-   ---------------------------------------- */
-function todayStr() {
-  const d = new Date();
-  return d.toISOString().split('T')[0];
-}
-
-function todayDisplay() {
-  return new Date().toLocaleDateString('tr-TR', {
-    weekday: 'long', day: 'numeric', month: 'long'
+    const r = localStorage.getItem('disciplineApp_v4');
+    state = r ? JSON.parse(r) : clone(DEFAULTS);
+  } catch { state = clone(DEFAULTS); }
+  // Fill missing nested keys
+  ['stats','settings','appearance','today'].forEach(k => {
+    state[k] = Object.assign(clone(DEFAULTS[k]), state[k] || {});
   });
+  if (!state.today.log)  state.today.log = [];
+  if (!state.history)    state.history = [];
+  if (state.shields === undefined)          state.shields = 0;
+  if (state.workoutSkipDays === undefined)  state.workoutSkipDays = 0;
+  if (state.settings.wakeTolerance === undefined) state.settings.wakeTolerance = 30;
+  if (state.settings.variableRewards === undefined) state.settings.variableRewards = true;
+}
+function saveState() { localStorage.setItem('disciplineApp_v4', JSON.stringify(state)); }
+function clone(o)    { return JSON.parse(JSON.stringify(o)); }
+
+/* ══════════════════════════════════════════════
+   DATE UTILITIES
+   ══════════════════════════════════════════════ */
+function todayStr()    { return new Date().toISOString().split('T')[0]; }
+function todayDisplay(){ return new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'}); }
+function formatDateTR(s) {
+  const [y,m,d] = s.split('-');
+  const months=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+  const days=['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
+  return `${days[new Date(s).getDay()]} ${d} ${months[+m-1]} ${y}`;
 }
 
 function checkNewDay() {
   const today = todayStr();
-  if (state.today.date !== today) {
-    // A new day — process yesterday if it wasn't ended
-    if (state.today.date && !state.today.dayEnded) {
-      applyMissedDayPenalties(false);
+  if (state.today.date && state.today.date !== today) {
+    if (!state.today.dayEnded) {
+      state.today.dayGrade   = 'fail';
+      state.today.daySuccess = false;
+      applyMissedPenalties();
     }
-    // Reset today
-    state.today = deepClone(DEFAULT_STATE.today);
+    archiveToday();
+    state.today = clone(DEFAULTS.today);
     state.today.date = today;
-    saveState();
+  } else if (!state.today.date) {
+    state.today.date = today;
+  }
+  saveState();
+}
+
+/* ══════════════════════════════════════════════
+   HISTORY ARCHIVE
+   ══════════════════════════════════════════════ */
+function archiveToday() {
+  if (!state.today.date) return;
+  if (state.history.length && state.history[0].date === state.today.date) {
+    Object.assign(state.history[0], buildSnap()); return;
+  }
+  state.history.unshift(buildSnap());
+  if (state.history.length > 90) state.history.length = 90;
+}
+function buildSnap() {
+  return {
+    date:    state.today.date,
+    grade:   state.today.dayGrade || 'fail',
+    success: !!state.today.daySuccess,
+    wake:    state.today.wakeLogged    ? { time:state.today.wakeTime, zone:state.today.wakeZone }      : null,
+    study:   state.today.studyLogged   ? { mins:state.today.studyMinutes, zone:state.today.studyZone } : null,
+    workout: state.today.workoutLogged ? { result:state.today.workoutResult }                          : null,
+    screen:  state.today.screenLogged  ? { mins:state.today.screenMinutes, zone:state.today.screenZone } : null,
+  };
+}
+
+/* ══════════════════════════════════════════════
+   SHIELD SYSTEM
+   ══════════════════════════════════════════════ */
+function checkShieldEarn() {
+  // Earn a shield every 7-day streak milestone
+  if (state.streak > 0 && state.streak % 7 === 0 && state.shields < SHIELD_MAX) {
+    state.shields = Math.min(SHIELD_MAX, state.shields + 1);
+    toast(`🛡 Seri kalkanı kazandın! (${state.shields}/${SHIELD_MAX})`, 'positive');
   }
 }
-
-function applyMissedDayPenalties(updateUI = true) {
-  // Missed workout
-  if (!state.today.workoutLogged || !state.today.workoutDone) {
-    state.workoutSkipDays = (state.workoutSkipDays || 0) + 1;
-    if (state.workoutSkipDays >= 2) {
-      state.stats.strength = Math.max(1, state.stats.strength - 2);
-      addLog('minus', 'Antrenman kaçırıldı — Güç düştü', '-2 Güç');
-    }
-  } else {
-    state.workoutSkipDays = 0;
+function tryUseShield() {
+  // Returns true if shield was used (streak saved)
+  if (state.shields > 0) {
+    state.shields--;
+    toast(`🛡 Kalkan devreye girdi! Serin korundu. (${state.shields} kaldı)`, 'warn');
+    return true;
   }
-  // Streak reset if day wasn't a success
-  if (!state.today.daySuccess) {
-    state.streak = 0;
+  return false;
+}
+
+/* ══════════════════════════════════════════════
+   VARIABLE REWARD SYSTEM
+   ══════════════════════════════════════════════ */
+function rollBonus() {
+  if (!state.settings.variableRewards) return { mult:1, label:null };
+  const r = Math.random();
+  if (r < 0.08)  return { mult:2,   label:'⚡ KRİTİK ODAK! ×2 XP!' };
+  if (r < 0.20)  return { mult:1.5, label:'✨ Momentum Bonusu! ×1.5 XP' };
+  return { mult:1, label:null };
+}
+let critTimer = null;
+function showCrit(msg) {
+  const el = document.getElementById('critFlash');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (critTimer) clearTimeout(critTimer);
+  critTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* ══════════════════════════════════════════════
+   XP ENGINE
+   ══════════════════════════════════════════════ */
+function dm() { return DIFFICULTY[state.settings.difficulty] || DIFFICULTY.normal; }
+
+function gainXP(base, desc, allowBonus = true) {
+  let mult = dm().xpM;
+  let bonusLabel = null;
+  if (allowBonus) {
+    const roll = rollBonus();
+    mult *= roll.mult;
+    bonusLabel = roll.label;
   }
-}
-
-/* ----------------------------------------
-   XP MANAGEMENT
-   ---------------------------------------- */
-function gainXP(amount, desc) {
-  state.xp += amount;
-  addLog('plus', desc, `+${amount} XP`);
-  checkLevelUp();
-}
-
-function loseXP(amount, desc) {
-  state.xp = Math.max(0, state.xp - amount);
-  addLog('minus', desc, `-${amount} XP`);
-}
-
-function checkLevelUp() {
-  const needed = xpForLevel(state.level);
-  if (state.xp >= needed) {
-    state.xp -= needed;
-    state.level += 1;
-    toast(`🏆 SEVİYE ATLADI! Seviye ${state.level}`, 'positive');
+  const amt = Math.max(1, Math.round(base * mult));
+  state.xp += amt;
+  addLog('plus', desc, `+${amt} XP`);
+  if (bonusLabel) {
+    addLog('bonus', bonusLabel, '');
+    showCrit(bonusLabel);
   }
+  handleLevelUp();
+  animateXPBar();
 }
 
-/* ----------------------------------------
-   LOG
-   ---------------------------------------- */
+function loseXP(base, desc) {
+  const amt = Math.max(1, Math.round(base * dm().penM));
+  state.xp = Math.max(0, state.xp - amt);
+  addLog('minus', desc, `-${amt} XP`);
+}
+
+function handleLevelUp() {
+  let levelled = false;
+  while (state.xp >= xpForLevel(state.level)) {
+    state.xp -= xpForLevel(state.level);
+    state.level++;
+    levelled = true;
+  }
+  if (levelled) showLevelUp();
+}
+
+let xpAnimTimer = null;
+function animateXPBar() {
+  const bar = document.getElementById('xpBar');
+  bar.classList.add('critical');
+  if (xpAnimTimer) clearTimeout(xpAnimTimer);
+  xpAnimTimer = setTimeout(() => bar.classList.remove('critical'), 600);
+}
+
+function showLevelUp() {
+  const ol = document.getElementById('lvlOverlay');
+  document.getElementById('lvlOverlayNum').textContent  = state.level;
+  document.getElementById('lvlOverlayRank').textContent = RANKS[Math.min(state.level-1, RANKS.length-1)][0];
+  ol.classList.add('show');
+  setTimeout(() => ol.classList.remove('show'), 2300);
+}
+
 function addLog(type, desc, xpText) {
-  state.today.log.push({ type, desc, xpText, time: new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) });
+  state.today.log.push({
+    type, desc, xpText,
+    time: new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})
+  });
 }
 
-/* ----------------------------------------
-   WAKE UP LOGGING
-   ---------------------------------------- */
-function logWakeUp() {
-  if (state.today.wakeLogged) { toast('Uyanış zaten kaydedildi.', 'warn'); return; }
-
-  const input = document.getElementById('wakeInput').value;
-  if (!input) { toast('Lütfen bir saat gir.', 'warn'); return; }
-
-  const [wH, wM] = input.split(':').map(Number);
-  const [tH, tM] = state.settings.wakeTarget.split(':').map(Number);
-  const wakeMinutes = wH * 60 + wM;
-  const targetMinutes = tH * 60 + tM;
-
-  state.today.wakeLogged = true;
-  state.today.wakeTime = input;
-
-  if (wakeMinutes <= targetMinutes) {
-    // Success
-    const bonus = Math.max(0, targetMinutes - wakeMinutes);
-    const xp = 30 + Math.floor(bonus / 5) * 5;
-    gainXP(xp, `Hedefe zamanında/erken uyandı (${input})`);
-    state.today.wakeSuccess = true;
-    toast(`✓ Erken kalktın! +${xp} XP`, 'positive');
-    setBadge('wake', 'done', `${input} ✓`);
-  } else {
-    // Penalty
-    const late = wakeMinutes - targetMinutes;
-    const xpLoss = Math.min(50, Math.floor(late / 10) * 10 + 10);
-    loseXP(xpLoss, `Geç uyandı (${input}) — ${late} dk geç`);
-    state.today.wakeSuccess = false;
-    toast(`✗ Geç uyandın. -${xpLoss} XP`, 'negative');
-    setBadge('wake', 'failed', `${input} ✗`);
-  }
-
-  saveState();
-  renderAll();
+/* ══════════════════════════════════════════════
+   STAT ANIMATION
+   ══════════════════════════════════════════════ */
+function flashStat(id, dir) {
+  const box = document.getElementById(id);
+  box.classList.remove('rising','falling');
+  void box.offsetWidth; // reflow
+  box.classList.add(dir === 1 ? 'rising' : 'falling');
+  setTimeout(() => box.classList.remove('rising','falling'), 700);
+}
+function changeStat(key, delta) {
+  const map = { intelligence:'box-int', strength:'box-str', focus:'box-foc' };
+  const old = state.stats[key];
+  state.stats[key] = Math.max(1, Math.min(99, state.stats[key] + delta));
+  if (state.stats[key] !== old) flashStat(map[key], delta > 0 ? 1 : -1);
 }
 
-/* ----------------------------------------
-   STUDY LOGGING
-   ---------------------------------------- */
-function logStudy() {
-  if (state.today.studyLogged) { toast('Çalışma zaten kaydedildi.', 'warn'); return; }
-
-  const mins = parseInt(document.getElementById('studyInput').value, 10);
-  if (!mins || mins < 1) { toast('Geçerli bir dakika gir.', 'warn'); return; }
-
-  const minTarget = state.settings.studyMinMinutes;
-  const xp = Math.floor(mins / 30) * 20;
-  const intGain = Math.floor(mins / 30);
-
-  state.today.studyLogged = true;
-  state.today.studyMinutes = mins;
-
-  gainXP(xp, `${mins} dk çalışma`);
-  state.stats.intelligence = Math.min(99, state.stats.intelligence + intGain);
-
-  if (mins >= minTarget) {
-    state.today.studySuccess = true;
-    toast(`📚 Harika! +${xp} XP, +${intGain} Zeka`, 'positive');
-    setBadge('study', 'done', `${mins} dk ✓`);
-  } else {
-    state.today.studySuccess = false;
-    const shortfall = minTarget - mins;
-    const penalty = Math.floor(shortfall / 30) * 10;
-    if (penalty > 0) loseXP(penalty, `Yeterince çalışmadı (${shortfall} dk eksik)`);
-    toast(`📚 +${xp} XP ama hedef tutmadı. -${penalty > 0 ? penalty : 0} XP`, 'warn');
-    setBadge('study', 'failed', `${mins} dk ✗`);
-  }
-
-  saveState();
-  renderAll();
-}
-
-/* ----------------------------------------
-   WORKOUT LOGGING
-   ---------------------------------------- */
-function logWorkout(done) {
-  if (state.today.workoutLogged) { toast('Antrenman zaten kaydedildi.', 'warn'); return; }
-
-  state.today.workoutLogged = true;
-  state.today.workoutDone = done;
-
-  if (done) {
-    gainXP(50, 'Antrenman tamamlandı');
-    state.stats.strength = Math.min(99, state.stats.strength + 2);
-    state.workoutSkipDays = 0;
-    toast('💪 Antrenman tamam! +50 XP, +2 Güç', 'positive');
-    setBadge('workout', 'done', 'Yapıldı ✓');
-  } else {
-    state.workoutSkipDays = (state.workoutSkipDays || 0) + 1;
+/* ══════════════════════════════════════════════
+   MISSED DAY PENALTIES
+   ══════════════════════════════════════════════ */
+function applyMissedPenalties() {
+  if (!state.today.workoutLogged || state.today.workoutResult === 'none') {
+    state.workoutSkipDays++;
     if (state.workoutSkipDays >= 2) {
-      state.stats.strength = Math.max(1, state.stats.strength - 2);
-      loseXP(20, `Antrenman yapılmadı (${state.workoutSkipDays} gün) — Güç düştü`);
-      toast(`✗ Antrenman yapılmadı. -20 XP, -2 Güç (${state.workoutSkipDays} gün üst üste)`, 'negative');
-    } else {
-      loseXP(10, 'Antrenman yapılmadı');
-      toast('✗ Antrenman yapılmadı. -10 XP', 'negative');
+      changeStat('strength', -1);
+      addLog('minus', `Antrenman ${state.workoutSkipDays} gün kaçırıldı — Güç düştü`, '-1 Güç');
     }
-    setBadge('workout', 'failed', 'Yapılmadı ✗');
-  }
-
-  saveState();
-  renderAll();
-}
-
-/* ----------------------------------------
-   SCREEN TIME LOGGING
-   ---------------------------------------- */
-function logScreen() {
-  if (state.today.screenLogged) { toast('Ekran süresi zaten kaydedildi.', 'warn'); return; }
-
-  const mins = parseInt(document.getElementById('screenInput').value, 10);
-  if (mins === undefined || isNaN(mins) || mins < 0) { toast('Geçerli bir değer gir.', 'warn'); return; }
-
-  const limit = state.settings.screenMaxMinutes;
-  state.today.screenLogged = true;
-  state.today.screenMinutes = mins;
-
-  if (mins <= limit) {
-    state.today.screenSuccess = true;
-    gainXP(15, `Ekran süresini kontrol altında tuttu (${mins}/${limit} dk)`);
-    toast(`✓ Ekran süresi kontrollü! +15 XP`, 'positive');
-    setBadge('screen', 'done', `${mins} dk ✓`);
   } else {
-    const over = mins - limit;
-    const xpLoss = Math.min(60, Math.floor(over / 15) * 10 + 10);
-    const focLoss = Math.ceil(over / 30);
-    loseXP(xpLoss, `Ekran süresini aştı (+${over} dk fazla)`);
-    state.stats.focus = Math.max(1, state.stats.focus - focLoss);
-    state.today.screenSuccess = false;
-    addLog('minus', `Ekran aşımı — Odak -${focLoss}`, `-${focLoss} Odak`);
-    toast(`✗ Ekran süresi aşıldı! -${xpLoss} XP, -${focLoss} Odak`, 'negative');
-    setBadge('screen', 'failed', `${mins} dk ✗`);
+    state.workoutSkipDays = 0;
   }
-
-  saveState();
-  renderAll();
+  if (!state.today.daySuccess) {
+    if (tryUseShield()) {
+      // streak saved
+    } else {
+      state.streak = 0;
+    }
+  }
 }
 
-/* ----------------------------------------
+/* ══════════════════════════════════════════════
+   ZONE HELPERS
+   ══════════════════════════════════════════════ */
+function toMin(s) { const [h,m] = s.split(':').map(Number); return h*60+m; }
+
+/* ─── Wake zone ─── */
+function getWakeZone(wakeMin) {
+  const tMin = toMin(state.settings.wakeTarget);
+  const tol  = state.settings.wakeTolerance || 30;
+  const diff = wakeMin - tMin;
+  if (diff <= 0)   return 'perfect';
+  if (diff <= tol) return 'soft';
+  return 'fail';
+}
+
+/* ─── Study zone ─── */
+function getStudyZone(mins) {
+  const t = state.settings.studyMinMinutes;
+  const pct = mins / t;
+  if (pct >= 1.0)  return 'perfect';
+  if (pct >= 0.75) return 'good';
+  if (pct >= 0.50) return 'partial';
+  return 'fail';
+}
+
+/* ─── Screen zone ─── */
+function getScreenZone(mins) {
+  const lim  = state.settings.screenMaxMinutes;
+  const over = mins - lim;
+  if (over <= 0)   return 'ok';
+  if (over <= 30)  return 'soft';
+  return 'hard';
+}
+
+/* ══════════════════════════════════════════════
+   REAL-TIME ZONE PREVIEWS
+   ══════════════════════════════════════════════ */
+function previewWakeZone() {
+  const val = document.getElementById('wakeInput').value;
+  if (!val) return;
+  const zone = getWakeZone(toMin(val));
+  setEl('wz0', zone === 'perfect' ? 'zone-seg perfect' : 'zone-seg');
+  setEl('wz1', zone === 'soft'    ? 'zone-seg partial' : 'zone-seg');
+  setEl('wz2', zone === 'fail'    ? 'zone-seg fail'    : 'zone-seg');
+  activateZoneLabel(['wzone-perfect','wzone-soft','wzone-fail'], zone === 'perfect' ? 0 : zone === 'soft' ? 1 : 2, ['perfect','partial','fail']);
+}
+
+function previewStudyZone() {
+  const val = parseInt(document.getElementById('studyInput').value, 10);
+  if (!val) return;
+  const zone = getStudyZone(val);
+  const map = { perfect:0, good:1, partial:2, fail:3 };
+  const colors = ['perfect','partial','partial','fail'];
+  const segs = ['sz0','sz1','sz2','sz3'];
+  segs.forEach((s,i) => setEl(s, i === map[zone] ? `zone-seg ${colors[i]}` : 'zone-seg'));
+  activateZoneLabel(['szone-perfect','szone-good','szone-partial','szone-fail'], map[zone], ['perfect','partial','partial','fail']);
+}
+
+function previewScreenZone() {
+  const val = parseInt(document.getElementById('screenInput').value, 10);
+  if (isNaN(val)) return;
+  const zone = getScreenZone(val);
+  setEl('scz0', zone === 'ok'   ? 'zone-seg perfect' : 'zone-seg');
+  setEl('scz1', zone === 'soft' ? 'zone-seg partial'  : 'zone-seg');
+  setEl('scz2', zone === 'hard' ? 'zone-seg fail'     : 'zone-seg');
+  activateZoneLabel(['sczone-ok','sczone-soft','sczone-fail'], zone === 'ok' ? 0 : zone === 'soft' ? 1 : 2, ['perfect','partial','fail']);
+}
+
+function setEl(id, cls) { const el = document.getElementById(id); if (el) el.className = cls; }
+function activateZoneLabel(ids, activeIdx, styles) {
+  ids.forEach((id,i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = i === activeIdx ? `active-zone ${styles[i]}` : '';
+  });
+}
+
+/* ══════════════════════════════════════════════
+   TASK LOGGING
+   ══════════════════════════════════════════════ */
+
+/* ─── WAKE ─── */
+function logWakeUp() {
+  if (state.today.wakeLogged) { toast('Uyanış zaten kaydedildi.','warn'); return; }
+  const val = document.getElementById('wakeInput').value;
+  if (!val) { toast('Lütfen bir saat gir.','warn'); return; }
+
+  const wMin = toMin(val), tMin = toMin(state.settings.wakeTarget);
+  const zone = getWakeZone(wMin);
+  state.today.wakeLogged = true;
+  state.today.wakeTime   = val;
+  state.today.wakeZone   = zone;
+
+  if (zone === 'perfect') {
+    const early = Math.max(0, tMin - wMin);
+    const xp = XP.wakePerfect + Math.min(8, Math.floor(early / 5) * XP.wakeBonus);
+    gainXP(xp, `Zamanında/erken uyandı (${val})`);
+    toast(`⏰ Mükemmel uyanış! Seri korundu.`, 'positive');
+    setBadge('wake','done', `${val} 🟢`);
+
+  } else if (zone === 'soft') {
+    gainXP(XP.wakeSoft, `Kabul edilebilir geç uyanış (${val})`);
+    toast(`⏰ Hafif geç — Kabul edilebilir, serin korundu.`, 'warn');
+    setBadge('wake','partial', `${val} 🟡`);
+
+  } else {
+    loseXP(PENALTIES.wakeHard, `Geç uyandı (${val}) — seri tehlikede`);
+    toast(`⏰ Geç uyandın. Ceza uygulandı.`, 'negative');
+    setBadge('wake','failed', `${val} 🔴`);
+  }
+
+  saveState(); renderAll();
+}
+
+/* ─── STUDY ─── */
+function logStudy() {
+  if (state.today.studyLogged) { toast('Çalışma zaten kaydedildi.','warn'); return; }
+  const mins = parseInt(document.getElementById('studyInput').value, 10);
+  if (!mins || mins < 1) { toast('Geçerli bir dakika gir.','warn'); return; }
+
+  const zone = getStudyZone(mins);
+  const blocksXP = Math.floor(mins / 30) * XP.studyPer30;
+  state.today.studyLogged  = true;
+  state.today.studyMinutes = mins;
+  state.today.studyZone    = zone;
+
+  // Intelligence grows per 60 min (slow)
+  const intGain = Math.floor(mins / 60);
+
+  gainXP(blocksXP, `${mins} dk çalışma (${Math.floor(mins/30)} blok)`);
+  if (intGain > 0) changeStat('intelligence', intGain);
+
+  if (zone === 'perfect') {
+    gainXP(XP.studyPerfectBonus, 'Çalışma hedefi aşıldı — bonus', false);
+    toast(`📚 Mükemmel! +Zeka ${intGain > 0 ? intGain : ''}`, 'positive');
+    setBadge('study','done', `${mins} dk 🟢`);
+
+  } else if (zone === 'good') {
+    toast(`📚 İyi çalışma — hedefin %75+ tamamlandı.`, 'positive');
+    setBadge('study','done', `${mins} dk 🟡`);
+
+  } else if (zone === 'partial') {
+    loseXP(PENALTIES.studyPartial, 'Çalışma hedefin yarısı kadardı');
+    toast(`📚 Kısmi çalışma — küçük ceza uygulandı.`, 'warn');
+    setBadge('study','partial', `${mins} dk 🟠`);
+
+  } else { // fail
+    loseXP(PENALTIES.studyFail, 'Çalışma hedefin çok altında');
+    toast(`📚 Yetersiz çalışma. Yarın daha iyi.`, 'negative');
+    setBadge('study','failed', `${mins} dk 🔴`);
+  }
+
+  saveState(); renderAll();
+}
+
+/* ─── WORKOUT ─── */
+function logWorkout(result) {
+  if (state.today.workoutLogged) { toast('Antrenman zaten kaydedildi.','warn'); return; }
+  state.today.workoutLogged = true;
+  state.today.workoutResult = result;
+
+  if (result === 'full') {
+    gainXP(XP.workoutFull, 'Tam antrenman tamamlandı');
+    changeStat('strength', 1);
+    state.workoutSkipDays = 0;
+    toast('💪 Harika! +Güç 1', 'positive');
+    setBadge('workout','done','Tam ✓');
+
+  } else if (result === 'partial') {
+    gainXP(XP.workoutPartial, 'Kısmi antrenman tamamlandı');
+    state.workoutSkipDays = 0;
+    toast('🚶 Kısmi antrenman — ceza yok, devam et.', 'warn');
+    setBadge('workout','partial','Kısmi 🟡');
+
+  } else { // none
+    state.workoutSkipDays++;
+    if (state.workoutSkipDays >= 2) {
+      loseXP(PENALTIES.workoutSkip2, `Antrenman ${state.workoutSkipDays} gün kaçırıldı`);
+      changeStat('strength', -1);
+      toast(`✗ ${state.workoutSkipDays} gün üst üste — Güç düştü!`, 'negative');
+    } else {
+      loseXP(PENALTIES.workoutMissed, 'Antrenman yapılmadı');
+      toast('✗ Antrenman yapılmadı. Küçük ceza.', 'negative');
+    }
+    setBadge('workout','failed','Yapılmadı ✗');
+  }
+
+  saveState(); renderAll();
+}
+
+/* ─── SCREEN ─── */
+function logScreen() {
+  if (state.today.screenLogged) { toast('Ekran süresi zaten kaydedildi.','warn'); return; }
+  const mins = parseInt(document.getElementById('screenInput').value, 10);
+  if (isNaN(mins) || mins < 0) { toast('Geçerli bir değer gir.','warn'); return; }
+
+  const zone = getScreenZone(mins);
+  state.today.screenLogged  = true;
+  state.today.screenMinutes = mins;
+  state.today.screenZone    = zone;
+
+  if (zone === 'ok') {
+    gainXP(XP.screenOk, `Ekran süresi kontrol altında (${mins} dk)`);
+    toast('📱 Ekran süresi kontrollü!', 'positive');
+    setBadge('screen','done',`${mins} dk 🟢`);
+
+  } else if (zone === 'soft') {
+    loseXP(PENALTIES.screenSoft, `Ekran süresini hafif aştı (+${mins - state.settings.screenMaxMinutes} dk)`);
+    toast('📱 Hafif aşım — küçük ceza, Odak korundu.', 'warn');
+    setBadge('screen','partial',`${mins} dk 🟡`);
+
+  } else { // hard
+    const over = mins - state.settings.screenMaxMinutes;
+    const focLoss = Math.ceil(over / 60);
+    loseXP(PENALTIES.screenHard, `Ekran süresini ciddi aştı (+${over} dk)`);
+    changeStat('focus', -focLoss);
+    addLog('minus', `Ekran aşımı — Odak -${focLoss}`, `-${focLoss} Odak`);
+    toast(`📱 Ciddi aşım! Odak düştü. -${focLoss}`, 'negative');
+    setBadge('screen','failed',`${mins} dk 🔴`);
+  }
+
+  saveState(); renderAll();
+}
+
+/* ══════════════════════════════════════════════
    END DAY
-   ---------------------------------------- */
+   ══════════════════════════════════════════════ */
 function endDay() {
-  if (state.today.dayEnded) { toast('Gün zaten bitirildi.', 'warn'); return; }
+  if (state.today.dayEnded) { toast('Gün zaten kapatıldı.','warn'); return; }
 
-  // Determine success
-  const wakeOk = state.today.wakeSuccess === true;
-  const studyOk = state.today.studySuccess === true;
-  const daySuccess = wakeOk && studyOk;
+  // Grade calculation (graduated, not binary)
+  const wZone   = state.today.wakeZone;
+  const sZone   = state.today.studyZone;
+  const wFail   = wZone === 'fail'   || !state.today.wakeLogged;
+  const sFail   = sZone === 'fail'   || !state.today.studyLogged;
+  const wPerfect= wZone === 'perfect';
+  const sPerfect= sZone === 'perfect' || sZone === 'good';
 
-  state.today.dayEnded = true;
+  let grade, daySuccess;
+  if (!wFail && !sFail) {
+    // Both at least partial — success
+    daySuccess = true;
+    grade = (wPerfect && sPerfect) ? 'success' : 'partial';
+  } else {
+    daySuccess = false;
+    grade = 'fail';
+  }
+
+  state.today.dayEnded  = true;
   state.today.daySuccess = daySuccess;
-  state.lastDayDate = todayStr();
+  state.today.dayGrade   = grade;
 
   if (daySuccess) {
-    state.streak += 1;
-    const bonusXP = 20 + state.streak * 5;
-    gainXP(bonusXP, `Başarılı gün bonusu (Seri: ${state.streak})`);
-    toast(`🏆 Başarılı Gün! +${bonusXP} XP, Seri: ${state.streak}`, 'positive');
+    state.streak++;
+    checkShieldEarn();
+    const bonus = XP.dayBonus + Math.min(state.streak, 20) * XP.dayBonusPerStreak;
+    gainXP(bonus, `Başarılı gün bonusu (Seri: ${state.streak})`, false);
+    const gradeText = grade === 'success' ? '🏆 Mükemmel Gün!' : '✓ Başarılı Gün!';
+    toast(`${gradeText} Seri: ${state.streak}`, 'positive');
   } else {
+    const shieldUsed = tryUseShield();
+    if (!shieldUsed) state.streak = 0;
+    loseXP(PENALTIES.dayFail, 'Başarısız gün — hedefler tutmadı');
     const reasons = [];
-    if (!wakeOk) reasons.push('zamanında uyanmadın');
-    if (!studyOk) reasons.push('yeterince çalışmadın');
-    state.streak = 0;
-    loseXP(15, `Başarısız gün — Seri sıfırlandı`);
-    toast(`✗ Başarısız Gün. Seri sıfırlandı. (${reasons.join(', ')})`, 'negative');
+    if (wFail) reasons.push('uyanış başarısız');
+    if (sFail) reasons.push('çalışma yetersiz');
+    toast(`✗ Başarısız Gün. (${reasons.join(', ')})`, 'negative');
   }
 
-  // Apply workout penalty if missed
+  // Workout missed at day-end
   if (!state.today.workoutLogged) {
-    state.workoutSkipDays = (state.workoutSkipDays || 0) + 1;
+    state.workoutSkipDays++;
     if (state.workoutSkipDays >= 2) {
-      state.stats.strength = Math.max(1, state.stats.strength - 2);
-      addLog('minus', `Antrenman kaçırıldı (${state.workoutSkipDays} gün) — Güç düştü`, '-2 Güç');
+      changeStat('strength', -1);
+      addLog('minus', `Antrenman ${state.workoutSkipDays} gün kaçırıldı — Güç düştü`, '-1 Güç');
     }
   }
 
+  archiveToday();
   document.getElementById('endDayBtn').disabled = true;
-  document.getElementById('endDayBtn').textContent = '✓ Gün Tamamlandı';
-
-  saveState();
-  renderAll();
+  document.getElementById('endDayBtn').textContent = '✓ Gün Kapatıldı';
+  saveState(); renderAll();
 }
 
-/* ----------------------------------------
+/* ══════════════════════════════════════════════
    SETTINGS
-   ---------------------------------------- */
+   ══════════════════════════════════════════════ */
 function saveSettings() {
-  const wakeTarget = document.getElementById('settingWakeTarget').value;
-  const studyMin = parseInt(document.getElementById('settingStudyMin').value, 10);
-  const screenMax = parseInt(document.getElementById('settingScreenMax').value, 10);
+  const wt = document.getElementById('settingWakeTarget').value;
+  const sm = parseInt(document.getElementById('settingStudyMin').value, 10);
+  const sc = parseInt(document.getElementById('settingScreenMax').value, 10);
+  const wt2= parseInt(document.getElementById('settingWakeTolerance').value, 10);
+  if (!wt || !sm || !sc || isNaN(wt2)) { toast('Tüm alanları doldur.','warn'); return; }
+  state.settings.wakeTarget       = wt;
+  state.settings.studyMinMinutes  = sm;
+  state.settings.screenMaxMinutes = sc;
+  state.settings.wakeTolerance    = wt2;
+  saveState(); renderAll(); toast('✓ Hedefler kaydedildi.','positive');
+}
 
-  if (!wakeTarget || !studyMin || !screenMax) { toast('Tüm alanları doldur.', 'warn'); return; }
+function saveDifficulty() {
+  const v = document.getElementById('settingDifficulty').value;
+  state.settings.difficulty = v;
+  saveState(); renderAll(); toast(`✓ Mod: ${DIFFICULTY[v].label}`, 'positive');
+}
+function updateDiffInfo() {
+  const v = document.getElementById('settingDifficulty').value;
+  document.getElementById('diffInfo').textContent = DIFF_INFO[v] || '';
+}
 
-  state.settings.wakeTarget = wakeTarget;
-  state.settings.studyMinMinutes = studyMin;
-  state.settings.screenMaxMinutes = screenMax;
-
+function saveVariableRewards() {
+  state.settings.variableRewards = document.getElementById('settingVariableRewards').checked;
   saveState();
-  renderAll();
-  toast('✓ Ayarlar kaydedildi.', 'positive');
 }
 
-function resetData() {
-  if (!confirm('Tüm veriler sıfırlanacak. Emin misin?')) return;
-  localStorage.removeItem('disciplineApp_v2');
-  loadState();
-  checkNewDay();
-  renderAll();
-  toast('Tüm veriler sıfırlandı.', 'warn');
+/* ── APPEARANCE ── */
+function saveAppearance() {
+  state.appearance.bgStyle   = document.getElementById('settingBgStyle').value;
+  state.appearance.bgOpacity = parseInt(document.getElementById('settingBgOpacity').value, 10);
+  state.appearance.bgEnabled = document.getElementById('settingBgEnabled').checked;
+  applyAppearance(); saveState(); toast('✓ Görünüm kaydedildi.','positive');
+}
+function applyAppearance() {
+  const a = state.appearance, el = document.getElementById('bg-layer');
+  el.className = `style-${a.bgStyle}`;
+  el.style.opacity = a.bgEnabled ? (a.bgOpacity / 100) : 0;
+}
+function previewBgStyle(v)    { document.getElementById('bg-layer').className = `style-${v}`; }
+function previewBgOpacity(v)  {
+  document.getElementById('bgOpacityVal').textContent = v + '%';
+  if (document.getElementById('settingBgEnabled').checked)
+    document.getElementById('bg-layer').style.opacity = v / 100;
+}
+function previewBgToggle(c) {
+  const v = document.getElementById('settingBgOpacity').value;
+  document.getElementById('bg-layer').style.opacity = c ? v / 100 : 0;
 }
 
-/* ----------------------------------------
-   SECTION TOGGLE
-   ---------------------------------------- */
-function toggleSection(id) {
-  const el = document.getElementById(id);
-  el.classList.toggle('open');
+/* ══════════════════════════════════════════════
+   RESET
+   ══════════════════════════════════════════════ */
+function showResetModal() { document.getElementById('confirmModal').classList.add('show'); }
+function hideModal()       { document.getElementById('confirmModal').classList.remove('show'); }
+function confirmReset() {
+  hideModal();
+  localStorage.removeItem('disciplineApp_v4');
+  loadState(); checkNewDay(); applyAppearance(); renderAll();
+  toast('Tüm veriler sıfırlandı.','warn');
 }
 
-/* ----------------------------------------
+/* ══════════════════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════════════════ */
+const TABS = ['dashboard','tasks','history','settings'];
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+  document.querySelectorAll('.nav-tab')[TABS.indexOf(name)].classList.add('active');
+  if (name === 'history') renderHistory();
+}
+function toggleSection(id) { document.getElementById(id).classList.toggle('open'); }
+
+/* ══════════════════════════════════════════════
    UI HELPERS
-   ---------------------------------------- */
+   ══════════════════════════════════════════════ */
 function setBadge(key, cls, text) {
   const el = document.getElementById(`badge-${key}`);
   if (!el) return;
@@ -1283,98 +1387,158 @@ function setBadge(key, cls, text) {
   el.textContent = text;
 }
 
-/* ----------------------------------------
+/* ══════════════════════════════════════════════
    RENDER
-   ---------------------------------------- */
+   ══════════════════════════════════════════════ */
 function renderAll() {
-  // Date
+  /* Date */
   document.getElementById('dateBadge').textContent = todayDisplay();
 
-  // Level & XP
+  /* Level & XP */
   document.getElementById('levelNum').textContent = state.level;
-  document.getElementById('rankTitle').textContent = rankTitle(state.level);
+  const rData = RANKS[Math.min(state.level - 1, RANKS.length - 1)];
+  document.getElementById('rankTitle').textContent    = rData[0];
+  document.getElementById('rankSubtitle').textContent = rData[1];
+
   const needed = xpForLevel(state.level);
   const pct = Math.min(100, (state.xp / needed) * 100);
   document.getElementById('xpText').textContent = `${state.xp} / ${needed}`;
-  document.getElementById('xpBar').style.width = pct + '%';
+  document.getElementById('xpBar').style.width  = pct + '%';
 
-  // Stats
-  setStatVal('statInt', state.stats.intelligence);
-  setStatVal('statStr', state.stats.strength);
-  setStatVal('statFoc', state.stats.focus);
+  /* Shields */
+  for (let i = 0; i < SHIELD_MAX; i++) {
+    const el = document.getElementById(`shield${i}`);
+    if (el) el.className = 'shield-icon' + (i < state.shields ? ' active' : '');
+  }
 
-  // Streak
+  /* Stats */
+  document.getElementById('statInt').textContent = state.stats.intelligence;
+  document.getElementById('statStr').textContent = state.stats.strength;
+  document.getElementById('statFoc').textContent = state.stats.focus;
+
+  /* Streak */
   document.getElementById('streakCount').textContent = state.streak;
 
-  // Day status
+  /* Difficulty badge */
+  const d = DIFFICULTY[state.settings.difficulty] || DIFFICULTY.normal;
+  const db = document.getElementById('diffBadgeHeader');
+  db.textContent = d.label;
+  db.className   = `diff-badge ${state.settings.difficulty}`;
+
+  /* Day status */
   const pill = document.getElementById('dayStatusPill');
-  const txt = document.getElementById('dayStatusText');
-  pill.className = 'status-pill neutral';
+  const txt  = document.getElementById('dayStatusText');
   if (state.today.dayEnded) {
-    if (state.today.daySuccess) {
-      pill.className = 'status-pill success';
-      txt.textContent = 'Başarılı ✓';
-    } else {
-      pill.className = 'status-pill fail';
-      txt.textContent = 'Başarısız ✗';
-    }
+    const g = state.today.dayGrade;
+    pill.className = `status-pill ${g}`;
+    txt.textContent = g === 'success' ? 'Mükemmel Gün ✓' : g === 'partial' ? 'Başarılı (Kısmi) ✓' : 'Başarısız ✗';
   } else {
-    txt.textContent = 'Değerlendirilmedi';
+    pill.className = 'status-pill neutral';
+    txt.textContent = 'Devam Ediyor';
   }
 
-  // Settings inputs
-  document.getElementById('settingWakeTarget').value = state.settings.wakeTarget;
-  document.getElementById('settingStudyMin').value = state.settings.studyMinMinutes;
-  document.getElementById('settingScreenMax').value = state.settings.screenMaxMinutes;
+  /* Settings sync */
+  document.getElementById('settingWakeTarget').value    = state.settings.wakeTarget;
+  document.getElementById('settingStudyMin').value      = state.settings.studyMinMinutes;
+  document.getElementById('settingScreenMax').value     = state.settings.screenMaxMinutes;
+  document.getElementById('settingWakeTolerance').value = state.settings.wakeTolerance;
+  document.getElementById('settingDifficulty').value    = state.settings.difficulty;
+  document.getElementById('settingVariableRewards').checked = state.settings.variableRewards;
+  document.getElementById('settingBgStyle').value       = state.appearance.bgStyle;
+  document.getElementById('settingBgOpacity').value     = state.appearance.bgOpacity;
+  document.getElementById('bgOpacityVal').textContent   = state.appearance.bgOpacity + '%';
+  document.getElementById('settingBgEnabled').checked   = state.appearance.bgEnabled;
+  document.getElementById('diffInfo').textContent       = DIFF_INFO[state.settings.difficulty] || '';
 
-  // Info texts
-  document.getElementById('wakeInfo').textContent =
-    `Hedef: ${state.settings.wakeTarget} | Erken uyanırsan XP kazanırsın, geç kalırsan ceza yiyersin.`;
-  document.getElementById('studyInfo').textContent =
-    `Minimum: ${state.settings.studyMinMinutes} dk | Her 30 dk = 20 XP + Zeka +1`;
+  /* Info texts */
+  const tol = state.settings.wakeTolerance;
+  document.getElementById('wakeInfo').textContent   =
+    `Hedef: ${state.settings.wakeTarget} · Tam zamanında veya erken = tam XP · 0-${tol} dk geç = kısmi XP, seri korunur · >${tol} dk geç = ceza`;
+  document.getElementById('studyInfo').textContent  =
+    `Min: ${state.settings.studyMinMinutes} dk · Mükemmel ≥%100 · İyi ≥%75 · Kısmi ≥%50 · Yetersiz <%50`;
   document.getElementById('screenInfo').textContent =
-    `Limit: ${state.settings.screenMaxMinutes} dk | Aşarsan XP cezası ve Odak düşer.`;
+    `Limit: ${state.settings.screenMaxMinutes} dk · Hafif aşım ≤30 dk fazla = küçük ceza · >30 dk fazla = Odak düşer`;
 
-  // Badges from today state
-  if (state.today.wakeLogged) setBadge('wake', state.today.wakeSuccess ? 'done' : 'failed', state.today.wakeTime + (state.today.wakeSuccess ? ' ✓' : ' ✗'));
-  if (state.today.studyLogged) setBadge('study', state.today.studySuccess ? 'done' : 'failed', state.today.studyMinutes + ' dk ' + (state.today.studySuccess ? '✓' : '✗'));
-  if (state.today.workoutLogged) setBadge('workout', state.today.workoutDone ? 'done' : 'failed', state.today.workoutDone ? 'Yapıldı ✓' : 'Yapılmadı ✗');
-  if (state.today.screenLogged) setBadge('screen', state.today.screenSuccess ? 'done' : 'failed', state.today.screenMinutes + ' dk ' + (state.today.screenSuccess ? '✓' : '✗'));
-
-  // End day button
-  const endBtn = document.getElementById('endDayBtn');
-  if (state.today.dayEnded) {
-    endBtn.disabled = true;
-    endBtn.textContent = '✓ Gün Tamamlandı';
+  /* Badges (from today state) */
+  if (state.today.wakeLogged) {
+    const bc = state.today.wakeZone === 'perfect' ? 'done' : state.today.wakeZone === 'soft' ? 'partial' : 'failed';
+    setBadge('wake', bc, state.today.wakeTime + (bc === 'done' ? ' 🟢' : bc === 'partial' ? ' 🟡' : ' 🔴'));
+  }
+  if (state.today.studyLogged) {
+    const z = state.today.studyZone;
+    const bc = (z==='perfect'||z==='good') ? 'done' : z==='partial' ? 'partial' : 'failed';
+    setBadge('study', bc, state.today.studyMinutes + ' dk');
+  }
+  if (state.today.workoutLogged) {
+    const r = state.today.workoutResult;
+    setBadge('workout', r==='full'?'done':r==='partial'?'partial':'failed',
+             r==='full'?'Tam ✓':r==='partial'?'Kısmi 🟡':'Yapılmadı ✗');
+  }
+  if (state.today.screenLogged) {
+    const z = state.today.screenZone;
+    const bc = z==='ok' ? 'done' : z==='soft' ? 'partial' : 'failed';
+    setBadge('screen', bc, state.today.screenMinutes + ' dk');
   }
 
-  // Daily log
+  /* End day button */
+  const eb = document.getElementById('endDayBtn');
+  if (state.today.dayEnded) { eb.disabled = true; eb.textContent = '✓ Gün Kapatıldı'; }
+  else { eb.disabled = false; eb.textContent = '⚑ Günü Kapat & Değerlendir'; }
+
   renderLog();
 }
 
-function setStatVal(id, val) {
-  document.getElementById(id).textContent = val;
-}
-
+/* ── RENDER LOG ── */
 function renderLog() {
-  const container = document.getElementById('dailyLog');
-  if (!state.today.log || state.today.log.length === 0) {
-    container.innerHTML = `<div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);padding:12px 0;text-align:center;letter-spacing:0.08em;">Henüz hiçbir hareket kaydedilmedi.</div>`;
+  const c = document.getElementById('dailyLog');
+  if (!state.today.log.length) {
+    c.innerHTML = '<div class="empty-state">Henüz hiçbir hareket kaydedilmedi.<br>Görevler sekmesinden başla.</div>';
     return;
   }
-  container.innerHTML = state.today.log.map(entry => `
+  c.innerHTML = state.today.log.map(e => `
     <div class="log-entry">
-      <div class="log-icon ${entry.type}">${entry.type === 'plus' ? '↑' : '↓'}</div>
-      <div class="log-desc">${entry.desc}</div>
-      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted)">${entry.time}</div>
-      <div class="log-xp ${entry.type}">${entry.xpText}</div>
-    </div>
-  `).join('');
+      <div class="log-icon ${e.type}">${e.type==='plus'?'↑':e.type==='bonus'?'★':'↓'}</div>
+      <div class="log-desc">${e.desc}</div>
+      <div class="log-time">${e.time}</div>
+      <div class="log-xp ${e.type}">${e.xpText}</div>
+    </div>`).join('');
 }
 
-/* ----------------------------------------
+/* ── RENDER HISTORY ── */
+function renderHistory() {
+  const c = document.getElementById('historyList');
+  if (!state.history.length) {
+    c.innerHTML = '<div class="empty-state">Henüz tamamlanmış gün yok.<br>"Günü Kapat" butonuna bastığında burada görünür.</div>';
+    return;
+  }
+  c.innerHTML = state.history.map((day, i) => {
+    const g = day.grade || (day.success ? 'success' : 'fail');
+    const label = g === 'success' ? 'MÜKEMMEL' : g === 'partial' ? 'BAŞARILI' : 'BAŞARISIZ';
+
+    const zoneChip = (z) => z === 'perfect' || z === 'good' || z === 'ok' ? 'ok' : z === 'soft' || z === 'partial' ? 'soft' : 'fail';
+
+    const chips = [
+      day.wake    ? `<span class="history-chip ${zoneChip(day.wake.zone)}">⏰ ${day.wake.time}</span>` : '<span class="history-chip">⏰ —</span>',
+      day.study   ? `<span class="history-chip ${zoneChip(day.study.zone)}">📚 ${day.study.mins} dk</span>` : '<span class="history-chip">📚 —</span>',
+      day.workout ? `<span class="history-chip ${day.workout.result==='full'?'ok':day.workout.result==='partial'?'soft':'fail'}">💪 ${day.workout.result==='full'?'Tam':day.workout.result==='partial'?'Kısmi':'Atlandı'}</span>` : '<span class="history-chip">💪 —</span>',
+      day.screen  ? `<span class="history-chip ${zoneChip(day.screen.zone)}">📱 ${day.screen.mins} dk</span>` : '<span class="history-chip">📱 —</span>',
+    ];
+    return `<div class="history-entry" style="animation-delay:${Math.min(i,12)*.035}s">
+      <div class="history-stripe ${g}"></div>
+      <div class="history-main">
+        <div class="history-top">
+          <span class="history-date">${formatDateTR(day.date)}</span>
+          <span class="history-status ${g}">${label}</span>
+        </div>
+        <div class="history-summary">${chips.join('')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════
    TOAST
-   ---------------------------------------- */
+   ══════════════════════════════════════════════ */
 let toastTimer = null;
 function toast(msg, type = '') {
   const el = document.getElementById('toast');
@@ -1383,15 +1547,16 @@ function toast(msg, type = '') {
   if (toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
     el.className = type;
-    setTimeout(() => { el.className = ''; }, 350);
-  }, 3000);
+    setTimeout(() => { el.className = ''; }, 330);
+  }, 3400);
 }
 
-/* ----------------------------------------
+/* ══════════════════════════════════════════════
    INIT
-   ---------------------------------------- */
+   ══════════════════════════════════════════════ */
 loadState();
 checkNewDay();
+applyAppearance();
 renderAll();
 </script>
 </body>
